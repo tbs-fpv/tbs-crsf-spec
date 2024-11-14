@@ -1,0 +1,1 @@
+[CRSF V3 Protocol Specification](https://github.com/tbs-fpv/tbs-crsf-spec) © 2020 by [TBS Avionics Co LTD](https://team-blacksheep.com) is licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1)
