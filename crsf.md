@@ -127,7 +127,7 @@ The maximum frame-rate must be chosen depending on the baudrate for be able for 
 
 ## __Dual wire / full duplex UART__
 
-This configuration is usually used on the flying platform side. Two devices are connected by regular UART connection. Only non-inverted (regular) UART is supported in this configuration. The UART runs by default at __400 kbaud 8N1 at 3.0 to 3.3V level__, but baudrate can be negotiated to be higher to facilitate faster transmission for reducing latency.
+This configuration is usually used on the flying platform side. Two devices are connected by regular UART connection. Only non-inverted (regular) UART is supported in this configuration. The UART runs by default at __416666 baud 8N1 at 3.0 to 3.3V level__, but baudrate can be negotiated to be higher to facilitate faster transmission for reducing latency.
 
 ## __Multimaster I2C (BST)__
 
