@@ -1093,6 +1093,8 @@ MSP frame over CRSF Payload packing:
 
 ## __0x80 Ardupilot reserved__
 
+## __0x81, 0x82 mLRS reserved__
+
 ## __0xAA CRSF MAVLink envelope__
 
 - CRSF MAVLink envelope is designed to transfer MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames. 
