@@ -1,96 +1,98 @@
-# __CRSF Protocol__
+# **CRSF Protocol**
 
-# __Table of Content__
-<!-- TOC -->
-* [__CRSF Protocol__](#crsf-protocol)
-* [__Table of Content__](#table-of-content)
-* [__Features__](#features)
-* [__Purpose__](#purpose)
-* [__Acronyms__](#acronyms)
-* [__Hardware__](#hardware)
-  * [__Single wire half duplex UART__](#single-wire-half-duplex-uart)
-  * [__Dual wire / full duplex UART__](#dual-wire--full-duplex-uart)
-  * [__Multimaster I2C (BST)__](#multimaster-i2c-bst)
-* [__Frame construction__](#frame-construction)
-  * [__Structure__](#structure)
-  * [__Broadcast frame__](#broadcast-frame)
-  * [__Extended header frame__](#extended-header-frame)
-  * [__Frame details__](#frame-details)
-* [__Routing__](#routing)
-* [__CRC__](#crc)
-* [__Device addresses__](#device-addresses)
-* [__Broadcast frame types__](#broadcast-frame-types)
-  * [__0x02 GPS__](#0x02-gps)
-  * [__0x03 GPS time__](#0x03-gps-time)
-  * [__0x06 GPS extended__](#0x06-gps-extended)
-  * [__0x07 Vario sensor__](#0x07-vario-sensor)
-  * [__0x08 Battery sensor__](#0x08-battery-sensor)
-  * [__0x09 Barometric altitude and vertical speed__](#0x09-barometric-altitude-and-vertical-speed)
-  * [__0x0B Heartbeat__](#0x0b-heartbeat)
-  * [__0x0F Discontinued__](#0x0f-discontinued)
-  * [__0x10 VTX telemetry__](#0x10-vtx-telemetry)
-  * [__0x14 Link statistics__](#0x14-link-statistics)
-  * [__0x16 RC channels packed payload__](#0x16-rc-channels-packed-payload)
-  * [__0x17 Subset RC channels packed__](#0x17-subset-rc-channels-packed)
-  * [__0x18 RC channels packed 11bits - unused__](#0x18-rc-channels-packed-11bits---unused)
-  * [__0x19 - 0x1B Reserved Crossfire__](#0x19---0x1b-reserved-crossfire)
-  * [__0x1C Link statistics RX__](#0x1c-link-statistics-rx)
-  * [__0x1D Link statistics TX__](#0x1d-link-statistics-tx)
-  * [__0x1E Attitude__](#0x1e-attitude)
-  * [__0x1F MAVLink FC__](#0x1f-mavlink-fc)
-  * [__0x21 Flight mode__](#0x21-flight-mode)
-  * [__0x22 ESP_NOW messages__](#0x22-esp_now-messages)
-  * [__0x27 reserved__](#0x27-reserved)
-* [__Extended frame types__](#extended-frame-types)
-  * [__0x28 Parameter ping devices__](#0x28-parameter-ping-devices)
-  * [__0x29 Parameter device information__](#0x29-parameter-device-information)
-  * [__Chunks__](#chunks)
-  * [__0x2B Parameter settings (entry)__](#0x2b-parameter-settings-entry)
-    * [__Parameter type definitions and hidden bit__](#parameter-type-definitions-and-hidden-bit)
-    * [__OUT_OF_RANGE__](#out_of_range)
-    * [__UINT8, INT8, UINT16, INT16, UINT32, INT32__](#uint8-int8-uint16-int16-uint32-int32)
-    * [__FLOAT__](#float)
-    * [__TEXT_SELECTION__](#text_selection)
-    * [__STRING__](#string)
-    * [__FOLDER__](#folder)
-    * [__INFO__](#info)
-    * [__COMMAND__](#command)
-  * [__0x2C Parameter settings (read)__](#0x2c-parameter-settings-read)
-  * [__0x2D Parameter value (write)__](#0x2d-parameter-value-write)
-  * [__0x32 Direct Commands__](#0x32-direct-commands)
-    * [__0x32.0xFF Command ACK__](#0x320xff-command-ack)
-    * [__0x32.0x01 FC Commands__](#0x320x01-fc-commands)
-    * [__0x32.0x03 Bluetooth Command__](#0x320x03-bluetooth-command)
-    * [__0x32.0x05 OSD Commands__](#0x320x05-osd-commands)
-    * [__0x32.0x08 VTX Commands__](#0x320x08-vtx-commands)
-    * [__0x32.0x09 LED__](#0x320x09-led)
-    * [__0x32.0x0A General__](#0x320x0a-general)
-    * [__0x32.0x10 Crossfire__](#0x320x10-crossfire)
-    * [__0x32.0x12 reserved__](#0x320x12-reserved)
-    * [__0x32.0x20 Flow control frame__](#0x320x20-flow-control-frame)
-    * [__0x32.0x22 Screen Command__](#0x320x22-screen-command)
-      * [__0x32.0x22.0x01 PopUp Message Start__](#0x320x220x01-popup-message-start)
-      * [__0x32.0x22.0x02 Selection return value__](#0x320x220x02-selection-return-value)
-      * [__0x32.0x22.0x03 reserved__](#0x320x220x03-reserved)
-      * [__0x32.0x22.0x04 reserved__](#0x320x220x04-reserved)
-  * [__0x34 Logging__](#0x34-logging)
-  * [__0x36 reserved__](#0x36-reserved)
-  * [__0x38 reserved__](#0x38-reserved)
-  * [__0x3A - Remote related frames__](#0x3a---remote-related-frames)
-    * [__0x3A.0x01 - 0x3A.0x09 - reserved__](#0x3a0x01---0x3a0x09---reserved)
-    * [__0x3A.0x10 timing correction (“CRSFshot”)__](#0x3a0x10-timing-correction-crsfshot)
-  * [__0x3C Game__](#0x3c-game)
-  * [__0x3E reserved__](#0x3e-reserved)
-  * [__0x40 reserved__](#0x40-reserved)
-  * [__0x78 - 0x79 KISS Fc reserved__](#0x78---0x79-kiss-fc-reserved)
-  * [__0x7A MSP request / 0x7B response__](#0x7a-msp-request--0x7b-response)
-  * [__0x80 Ardupilot reserved__](#0x80-ardupilot-reserved)
-  * [__0xAA CRSF MAVLink envelope__](#0xaa-crsf-mavlink-envelope)
-  * [__0xAC CRSF MAVLink system-status sensor__](#0xac-crsf-mavlink-system-status-sensor)
-* [__End of document__](#end-of-document)
+# **Table of Content**
+
 <!-- TOC -->
 
-# __Features__
+- [**CRSF Protocol**](#crsf-protocol)
+- [**Table of Content**](#table-of-content)
+- [**Features**](#features)
+- [**Purpose**](#purpose)
+- [**Acronyms**](#acronyms)
+- [**Hardware**](#hardware)
+  - [**Single wire half duplex UART**](#single-wire-half-duplex-uart)
+  - [**Dual wire / full duplex UART**](#dual-wire--full-duplex-uart)
+  - [**Multimaster I2C (BST)**](#multimaster-i2c-bst)
+- [**Frame construction**](#frame-construction)
+  - [**Structure**](#structure)
+  - [**Broadcast frame**](#broadcast-frame)
+  - [**Extended header frame**](#extended-header-frame)
+  - [**Frame details**](#frame-details)
+- [**Routing**](#routing)
+- [**CRC**](#crc)
+- [**Device addresses**](#device-addresses)
+- [**Broadcast frame types**](#broadcast-frame-types)
+  - [**0x02 GPS**](#0x02-gps)
+  - [**0x03 GPS time**](#0x03-gps-time)
+  - [**0x06 GPS extended**](#0x06-gps-extended)
+  - [**0x07 Vario sensor**](#0x07-vario-sensor)
+  - [**0x08 Battery sensor**](#0x08-battery-sensor)
+  - [**0x09 Barometric altitude and vertical speed**](#0x09-barometric-altitude-and-vertical-speed)
+  - [**0x0B Heartbeat**](#0x0b-heartbeat)
+  - [**0x0F Discontinued**](#0x0f-discontinued)
+  - [**0x10 VTX telemetry**](#0x10-vtx-telemetry)
+  - [**0x14 Link statistics**](#0x14-link-statistics)
+  - [**0x16 RC channels packed payload**](#0x16-rc-channels-packed-payload)
+  - [**0x17 Subset RC channels packed**](#0x17-subset-rc-channels-packed)
+  - [**0x18 RC channels packed 11bits - unused**](#0x18-rc-channels-packed-11bits---unused)
+  - [**0x19 - 0x1B Reserved Crossfire**](#0x19---0x1b-reserved-crossfire)
+  - [**0x1C Link statistics RX**](#0x1c-link-statistics-rx)
+  - [**0x1D Link statistics TX**](#0x1d-link-statistics-tx)
+  - [**0x1E Attitude**](#0x1e-attitude)
+  - [**0x1F MAVLink FC**](#0x1f-mavlink-fc)
+  - [**0x21 Flight mode**](#0x21-flight-mode)
+  - [**0x22 ESP_NOW messages**](#0x22-esp_now-messages)
+  - [**0x27 reserved**](#0x27-reserved)
+- [**Extended frame types**](#extended-frame-types)
+  - [**0x28 Parameter ping devices**](#0x28-parameter-ping-devices)
+  - [**0x29 Parameter device information**](#0x29-parameter-device-information)
+  - [**Chunks**](#chunks)
+  - [**0x2B Parameter settings (entry)**](#0x2b-parameter-settings-entry)
+    - [**Parameter type definitions and hidden bit**](#parameter-type-definitions-and-hidden-bit)
+    - [**OUT_OF_RANGE**](#out_of_range)
+    - [**UINT8, INT8, UINT16, INT16, UINT32, INT32**](#uint8-int8-uint16-int16-uint32-int32)
+    - [**FLOAT**](#float)
+    - [**TEXT_SELECTION**](#text_selection)
+    - [**STRING**](#string)
+    - [**FOLDER**](#folder)
+    - [**INFO**](#info)
+    - [**COMMAND**](#command)
+  - [**0x2C Parameter settings (read)**](#0x2c-parameter-settings-read)
+  - [**0x2D Parameter value (write)**](#0x2d-parameter-value-write)
+  - [**0x32 Direct Commands**](#0x32-direct-commands)
+    - [**0x32.0xFF Command ACK**](#0x320xff-command-ack)
+    - [**0x32.0x01 FC Commands**](#0x320x01-fc-commands)
+    - [**0x32.0x03 Bluetooth Command**](#0x320x03-bluetooth-command)
+    - [**0x32.0x05 OSD Commands**](#0x320x05-osd-commands)
+    - [**0x32.0x08 VTX Commands**](#0x320x08-vtx-commands)
+    - [**0x32.0x09 LED**](#0x320x09-led)
+    - [**0x32.0x0A General**](#0x320x0a-general)
+    - [**0x32.0x10 Crossfire**](#0x320x10-crossfire)
+    - [**0x32.0x12 reserved**](#0x320x12-reserved)
+    - [**0x32.0x20 Flow control frame**](#0x320x20-flow-control-frame)
+    - [**0x32.0x22 Screen Command**](#0x320x22-screen-command)
+      - [**0x32.0x22.0x01 PopUp Message Start**](#0x320x220x01-popup-message-start)
+      - [**0x32.0x22.0x02 Selection return value**](#0x320x220x02-selection-return-value)
+      - [**0x32.0x22.0x03 reserved**](#0x320x220x03-reserved)
+      - [**0x32.0x22.0x04 reserved**](#0x320x220x04-reserved)
+  - [**0x34 Logging**](#0x34-logging)
+  - [**0x36 reserved**](#0x36-reserved)
+  - [**0x38 reserved**](#0x38-reserved)
+  - [**0x3A - Remote related frames**](#0x3a---remote-related-frames)
+    - [**0x3A.0x01 - 0x3A.0x09 - reserved**](#0x3a0x01---0x3a0x09---reserved)
+    - [**0x3A.0x10 timing correction (“CRSFshot”)**](#0x3a0x10-timing-correction-crsfshot)
+  - [**0x3C Game**](#0x3c-game)
+  - [**0x3E reserved**](#0x3e-reserved)
+  - [**0x40 reserved**](#0x40-reserved)
+  - [**0x78 - 0x79 KISS Fc reserved**](#0x78---0x79-kiss-fc-reserved)
+  - [**0x7A MSP request / 0x7B response**](#0x7a-msp-request--0x7b-response)
+  - [**0x80 Ardupilot reserved**](#0x80-ardupilot-reserved)
+  - [**0xAA CRSF MAVLink envelope**](#0xaa-crsf-mavlink-envelope)
+  - [**0xAC CRSF MAVLink system-status sensor**](#0xac-crsf-mavlink-system-status-sensor)
+- [**End of document**](#end-of-document)
+<!-- TOC -->
+
+# **Features**
 
 - Low latency high update rate for RC signals between RC - TX and RX - FC
 - Bidirectional communication
@@ -99,90 +101,88 @@
   can configure FC or OSD over CRSF)
 - Share receiver serial number to TX, so it can be matched to model memory.
 
-# __Purpose__
+# **Purpose**
 
 This document serves as a public "single source of truth", maintained by TBS, documenting the protocol. It serves as reference for implementation of CRSF-compatible devices, as well as allows developers not associated with TBS to voice requirements and suggest extensions to the existing protocols. It will further establish CRSF as the most widely implemented modern communication protocol for R/C devices.
 
-# __Acronyms__
-- __CRSF__  Binary frame-based protocol for radio-controlled devices. The subject of this document.
-- __RC__    Remote Controller. The pilot control input device.
-- __TX__    Transmitter (which is actually a transceiver). Usually a part (external or embedded as a radio module) of RC.
-- __RX__    Receiver (which is also a transceiver). Might be as a separate device or embedded with FC or VTX.
-- __FC__    Flight Controller.
-- __VTX__   Video Transmitter.
-- __VRX__   Video Receiver.
+# **Acronyms**
 
+- **CRSF** Binary frame-based protocol for radio-controlled devices. The subject of this document.
+- **RC** Remote Controller. The pilot control input device.
+- **TX** Transmitter (which is actually a transceiver). Usually a part (external or embedded as a radio module) of RC.
+- **RX** Receiver (which is also a transceiver). Might be as a separate device or embedded with FC or VTX.
+- **FC** Flight Controller.
+- **VTX** Video Transmitter.
+- **VRX** Video Receiver.
 
-# __Hardware__
+# **Hardware**
 
-## __Single wire half duplex UART__
+## **Single wire half duplex UART**
 
-This configuration is usually used between RC and TX. The RC acts as master in this case and TX responds with telemetry if it’s synchronized to the RC frames sent by the RC. The RC must send only one frame with pre-configured or negotiated frequency and must switch the line into the high-impedance mode and wait for a response from TX. 
-The UART by default runs at __400 kbaud 8N1__ (inverted or non-inverted) at __3.3V__ level, but it 
-also supports 115.2 kbaud, and higher (1Mbaud, 2Mbaud) depending on hardware (see [__0x70 CRSF 
-Protocol Speed Proposal__](#0x320x0a-general)). It is recommended that TX 
+This configuration is usually used between RC and TX. The RC acts as master in this case and TX responds with telemetry if it’s synchronized to the RC frames sent by the RC. The RC must send only one frame with pre-configured or negotiated frequency and must switch the line into the high-impedance mode and wait for a response from TX.
+The UART by default runs at **400 kbaud 8N1** (inverted or non-inverted) at **3.3V** level, but it
+also supports 115.2 kbaud, and higher (1Mbaud, 2Mbaud) depending on hardware (see [**0x70 CRSF
+Protocol Speed Proposal**](#0x320x0a-general)). It is recommended that TX
 modules are configured to the same baud rate, or that they latch on to the correct baudrate automatically.
-The maximum frame-rate must be chosen depending on the baudrate for be able for RC and TX send frames with maximum length (64 bytes) in one frame. 
+The maximum frame-rate must be chosen depending on the baudrate for be able for RC and TX send frames with maximum length (64 bytes) in one frame.
 
+## **Dual wire / full duplex UART**
 
-## __Dual wire / full duplex UART__
+This configuration is usually used on the flying platform side. Two devices are connected by regular UART connection. Only non-inverted (regular) UART is supported in this configuration. The UART runs by default at **416666 baud 8N1 at 3.0 to 3.3V level**, but baudrate can be negotiated to be higher to facilitate faster transmission for reducing latency.
 
-This configuration is usually used on the flying platform side. Two devices are connected by regular UART connection. Only non-inverted (regular) UART is supported in this configuration. The UART runs by default at __416666 baud 8N1 at 3.0 to 3.3V level__, but baudrate can be negotiated to be higher to facilitate faster transmission for reducing latency.
-
-## __Multimaster I2C (BST)__
+## **Multimaster I2C (BST)**
 
 (EOL) BST is a multi master I2C bus. It runs at 3.3V level at 100kHz using 7 bit addresses. Device addresses already contain the R/W bit. Which means the list is each device’s write address and read address is Device addresses + 1. Each device supporting BST should release SDA in any case to not block the bus. It’s recommended to monitor the heartbeat message and reset the interface if there is a timeout of 1.5s. It’s required to support general call frames which will be called broadcast frames within this document.
 
-# __Frame construction__
+# **Frame construction**
 
-## __Structure__
+## **Structure**
 
-The basic structure for each frame is the same. There is a range of Types with an extended header which will have the first few bytes of payload standardized. This is required to route frame across multiple devices for point to point communication. Each CRSF frame is not longer than __64 bytes__ (including the Sync and CRC bytes)
+The basic structure for each frame is the same. There is a range of Types with an extended header which will have the first few bytes of payload standardized. This is required to route frame across multiple devices for point to point communication. Each CRSF frame is not longer than **64 bytes** (including the Sync and CRC bytes)
 
-## __Broadcast frame__
+## **Broadcast frame**
 
 ```mermaid
 flowchart LR
     id0[Sync byte] ~~~ id1[Frame Length] ~~~ Type ~~~ Payload ~~~ CRC
 ```
 
-## __Extended header frame__
+## **Extended header frame**
 
 ```mermaid
 flowchart LR
     id0[Sync byte] ~~~ id1[Frame Length] ~~~ Type~~~ id2[Destination Address]  ~~~ id3[Origin Address]  ~~~ Payload ~~~ CRC
 ```
 
-## __Frame details__
+## **Frame details**
 
-- __Sync byte__ might be one of (so, receiving device should expect any of): 
-  - Serial sync byte: __0xC8__;
-  - Broadcast device address: __0x00__;
+- **Sync byte** might be one of (so, receiving device should expect any of):
+  - Serial sync byte: **0xC8**;
+  - Broadcast device address: **0x00**;
   - Device address (see addresses below).
-- __Frame length:__ number of bytes in the frame excluding Sync byte and Frame Length (basically, entire frame size -2)
-  - __Broadcast Frame:__ Type + Payload + CRC
-  - __Extended header frame:__ Type + Destination address + Origin address + Payload + CRC  
+- **Frame length:** number of bytes in the frame excluding Sync byte and Frame Length (basically, entire frame size -2)
+  - **Broadcast Frame:** Type + Payload + CRC
+  - **Extended header frame:** Type + Destination address + Origin address + Payload + CRC
   - Valid range is between 2 and 62. If this uint8 value is out of valid range the frame must be discarded.
-- __Type:__ Frame type
-- __Endianness:__ Big endian (MSB)
- 
+- **Type:** Frame type
+- **Endianness:** Big endian (MSB)
+
 Frame size may be bigger than expected frame of given type. This should not be a reason to count the frame invalid. Frame receiver should just ignore extra fields. It's possible that frame sender supports a newer CRSF protocol version and sends some additional fields after known ones.
 
 And vice-versa: if a frame has some optional fields, sometimes this fields might be set as empty fields (e.g. zero-length null-terminated string) but sometimes those fields might be absent and the frame size shortened. Don't try to read optional fields beyond frame payload.
 
-  
+# **Routing**
 
-# __Routing__
+If a device has more than one CRSF port it’s required to forward all received frames to the other ports. CRSF works as a star network with fixed address tables on each node. It’s forbidden to use any loop connection as it would keep forwarding the same message endlessly.
 
-If a device has more than one CRSF port it’s required to forward all received frames to the other ports. CRSF works as a star network with fixed address tables on each node. It’s forbidden to use any loop connection as it would keep forwarding the same message endlessly. 
-
-# __CRC__
+# **CRC**
 
 CRC includes Type and Payload of each frame (doesn't include sync byte and frame length).
 
 CRC8 implementation with polynom = x7+ x6+ x4+ x2+ x0 (0xD5)
 
 code example:
+
 ```cpp
 unsigned char crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
@@ -211,44 +211,45 @@ uint8_t crc8(const uint8_t * ptr, uint8_t len)
 }
 ```
 
-# __Device addresses__
+# **Device addresses**
 
-- __0x00__ Broadcast address
-- __0x0E__ Cloud
-- __0x10__ USB Device
-- __0x12__ Bluetooth Module/WiFi
-- __0x13__ Wi-Fi receiver (mobile game/simulator)
-- __0x14__ Video Receiver
+- **0x00** Broadcast address
+- **0x0E** Cloud
+- **0x10** USB Device
+- **0x12** Bluetooth Module/WiFi
+- **0x13** Wi-Fi receiver (mobile game/simulator)
+- **0x14** Video Receiver
 - _0x20-0x7F Dynamic address space for NAT_
-- __0x80__ OSD / TBS CORE PNP PRO
-- __0x90__ ESC 1
-- __0x91__ ESC 2
-- __0x92__ ESC 3
-- __0x93__ ESC 4
-- __0x94__ ESC 5
-- __0x95__ ESC 6
-- __0x96__ ESC 7
-- __0x97__ ESC 8
+- **0x80** OSD / TBS CORE PNP PRO
+- **0x90** ESC 1
+- **0x91** ESC 2
+- **0x92** ESC 3
+- **0x93** ESC 4
+- **0x94** ESC 5
+- **0x95** ESC 6
+- **0x96** ESC 7
+- **0x97** ESC 8
 - _0x8A Reserved_
 - _0xB0 Crossfire reserved_
 - _0xB2 Crossfire reserved_
-- __0xC0__ Voltage/ Current Sensor / PNP PRO digital current sensor
-- __0xC2__ GPS / PNP PRO GPS
-- __0xC4__ TBS Blackbox
-- __0xC8__ Flight controller
+- **0xC0** Voltage/ Current Sensor / PNP PRO digital current sensor
+- **0xC2** GPS / PNP PRO GPS
+- **0xC4** TBS Blackbox
+- **0xC8** Flight controller
 - _0xCA Reserved_
-- __0xCC__ Race tag
-- __0xCE__ VTX
-- __0xEA__ Remote Control
-- __0xEC__ R/C Receiver / Crossfire Rx
-- __0xEE__ R/C Transmitter Module / Crossfire Tx
+- **0xCC** Race tag
+- **0xCE** VTX
+- **0xEA** Remote Control
+- **0xEC** R/C Receiver / Crossfire Rx
+- **0xEE** R/C Transmitter Module / Crossfire Tx
 - _0xF0 reserved_
 - _0xF2 reserved_
 
-# __Broadcast frame types__
+# **Broadcast frame types**
+
 Frames with type lower than 0x27 are broadcast frames and have simple (short) header.
 
-## __0x02 GPS__
+## **0x02 GPS**
 
 ```cpp
     int32_t latitude;       // degree / 10`000`000
@@ -259,7 +260,7 @@ Frames with type lower than 0x27 are broadcast frames and have simple (short) he
     uint8_t satellites;     // # of sats in view
 ```
 
-## __0x03 GPS time__
+## **0x03 GPS time**
 
 This frame is needed for synchronization with the ublox time pulse. The maximum offset of time is +/-10ms.
 
@@ -273,7 +274,7 @@ This frame is needed for synchronization with the ublox time pulse. The maximum 
     uint16_t millisecond;
 ```
 
-## __0x06 GPS extended__
+## **0x06 GPS extended**
 
 ```cpp
     uint8_t fix_type;       // Current GPS fix quality
@@ -282,7 +283,7 @@ This frame is needed for synchronization with the ublox time pulse. The maximum 
     int16_t v_speed;        // Vertical (up = positive) Speed [cm/sec]
     int16_t h_speed_acc;    // Horizontal Speed accuracy cm/sec
     int16_t track_acc;      // Heading accuracy in degrees scaled with 1e-1 degrees times 10)
-    int16_t alt_ellipsoid;  // Meters Height above GPS Ellipsoid (not MSL) 
+    int16_t alt_ellipsoid;  // Meters Height above GPS Ellipsoid (not MSL)
     int16_t h_acc;          // horizontal accuracy in cm
     int16_t v_acc;          // vertical accuracy in cm
     uint8_t reserved;
@@ -290,13 +291,13 @@ This frame is needed for synchronization with the ublox time pulse. The maximum 
     uint8_t vDOP;           // vertical dilution of precision, Dimensionless in nits of .1.
 ```
 
-## __0x07 Vario sensor__
+## **0x07 Vario sensor**
 
 ```cpp
     int16_t v_speed;        // Vertical speed cm/s
 ```
 
-## __0x08 Battery sensor__
+## **0x08 Battery sensor**
 
 ```cpp
     int16_t voltage;        // Voltage (LSB = 10 µV)
@@ -305,18 +306,23 @@ This frame is needed for synchronization with the ublox time pulse. The maximum 
     uint8_t remaining;      // Battery remaining (percent)
 ```
 
-## __0x09 Barometric altitude and vertical speed__
-These frame allows sending altitude and vertical speed in a bit-efficient way. It allows in 3 bytes combine dm-precision altitude with 32-km range and 3cm/s-precision vertical speed with 25m/s range. 
+## **0x09 Barometric altitude and vertical speed**
+
+These frame allows sending altitude and vertical speed in a bit-efficient way. It allows in 3 bytes combine dm-precision altitude with 32-km range and 3cm/s-precision vertical speed with 25m/s range.
+
 ```cpp
     uint16_t altitude_packed;       // Altitude above start (calibration) point
                                     // See description below.
     int8_t   vertical_speed_packed; // vertical speed. See description below.
 ```
+
 Altitude value depends on MSB (bit 15):
+
 - MSB = 0: altitude is in decimeters - 10000dm offset (so 0 represents -1000m; 10000 represents 0m (starting altitude); 0x7fff represents 2276.7m);
 - MSB = 1: altitude is in meters. Without any offset.
- 
+
 altitude pack/unpack functions example:
+
 ```cpp
 int32_t get_altitude_dm(uint16_t packed){
     return (packed & 0x8000) ? (packed & 0x7fff) * 10 : (packed - 10000);
@@ -326,14 +332,14 @@ int32_t get_altitude_dm(uint16_t packed){
 // the maximum sending value is limited to 0xFFFE (32766 meters)
 //pack function example:
 uint16_t get_altitude_packed (int32_t altitude_dm){
-    enum 
+    enum
     {
         ALT_MIN_DM = 10000,                     //minimum altitude in dm
-        ALT_THRESHOLD_DM = 0x8000 - ALT_MIN_DM, //altitude of precision 
+        ALT_THRESHOLD_DM = 0x8000 - ALT_MIN_DM, //altitude of precision
                                                 // changing in dm
         ALT_MAX_DM = 0x7ffe * 10 - 5,           //maximum altitude in dm
     }
-        
+
     if(altitude_dm < -ALT_MIN_DM)               //less than minimum altitude
         return 0;                               //minimum
     if(altitude_dm > ALT_MAX_DM)                //more than maximum
@@ -345,33 +351,34 @@ uint16_t get_altitude_packed (int32_t altitude_dm){
 ```
 
 vertical speed is represented in cm/s with logarithmic scale and (un)packed by functions:
+
 ```cpp
 const int   Kl = 100;       // linearity constant;
 const float Kr = .026;      // range constant;
 
 int8_t  get_vertical_speed_packed (int16 vertical_speed_cm_s){
-    return (int8_t)(log(abs(vertical_speed_cm_s)/Kl + 1)/Kr) 
+    return (int8_t)(log(abs(vertical_speed_cm_s)/Kl + 1)/Kr)
                                  * sign(vertical_speed_cm_s);
 }
 
 int16_t get_vertical_speed_cm_s (int8_t vertical_speed_packed){
-    return exp(abs(vertical_speed_packed * Kr) - 1) * Kl 
+    return exp(abs(vertical_speed_packed * Kr) - 1) * Kl
                            * sign(vertical_speed_packed);
 }
 
 ```
+
 Such constants give ±2500cm/s range and 3cm/s precision at low speeds and 70cm/s precision at speed about 25m/s;
 
-
-## __0x0B Heartbeat__
+## **0x0B Heartbeat**
 
 ```cpp
     int16_t origin_address;             // Origin Device address
 ```
 
-## __0x0F Discontinued__
+## **0x0F Discontinued**
 
-## __0x10 VTX telemetry__
+## **0x10 VTX telemetry**
 
 ```cpp
     uint8_t     origin_address;
@@ -382,7 +389,7 @@ Such constants give ±2500cm/s range and 3cm/s precision at low speeds and 70cm/
     uint8_t     pitmode_switch:4;   // 0=Ch5, 1=Ch5 Inv, … , 15=Ch12 Inv
 ```
 
-## __0x14 Link statistics__
+## **0x14 Link statistics**
 
 Uplink is the connection from the ground to the UAV and downlink the opposite direction
 
@@ -393,14 +400,14 @@ Uplink is the connection from the ground to the UAV and downlink the opposite di
     int8_t      up_snr;             // Uplink SNR (dB)
     uint8_t     active_antenna;     // number of currently best antenna
     uint8_t     rf_profile;         // enum {4fps = 0 , 50fps, 150fps}
-    uint8_t     up_rf_power;        // enum {0mW = 0, 10mW, 25mW, 100mW, 
+    uint8_t     up_rf_power;        // enum {0mW = 0, 10mW, 25mW, 100mW,
                                     // 500mW, 1000mW, 2000mW, 250mW, 50mW}
     uint8_t     down_rssi;          // Downlink RSSI (dBm * -1)
     uint8_t     down_link_quality;  // Downlink Package success rate / Link quality (%)
     int8_t      down_snr;           // Downlink SNR (dB)
 ```
 
-## __0x16 RC channels packed payload__
+## **0x16 RC channels packed payload**
 
 16 channels packed into 22 bytes.
 In case of a Failsafe, this frame will no longer be sent (when the failsafe type is set to "cut").
@@ -433,9 +440,11 @@ struct
 };
 ```
 
-## __0x17 Subset RC channels packed__
+## **0x17 Subset RC channels packed**
+
 > [!WARNING]
 > This frame is discouraged for implementation. Revision is in progress.
+
 ```cpp
 // Calculation example to convert rc values to channel values
 #define PACK_TX(x)          ((x - 3750) * 8 / 25 + 993)
@@ -445,25 +454,24 @@ struct
 struct PACKED
 {
     uint8_t     starting_channel:5;             // which channel number is the first one in the frame
-    uint8_t     res_configuration:2;            // configuration for the RC data resolution 
+    uint8_t     res_configuration:2;            // configuration for the RC data resolution
                                                 // (10 - 13 bits)
     uint8_t     digital_switch_flag:1;          // configuration bit for digital channel
-    uint16_t    channel[]:resulution;           // variable amount of channels 
-                                                // (with variable resolution based on the 
-                                                // res_configuration) 
+    uint16_t    channel[]:resulution;           // variable amount of channels
+                                                // (with variable resolution based on the
+                                                // res_configuration)
                                                 // based on the frame size
     uint16_t    digital_switch_channel[]:10;    // digital switch channel
 };
 ```
 
-
-## __0x18 RC channels packed 11bits - unused__
+## **0x18 RC channels packed 11bits - unused**
 
 same as 0x16, but same conversion style as 0x17
 
-## __0x19 - 0x1B Reserved Crossfire__
+## **0x19 - 0x1B Reserved Crossfire**
 
-## __0x1C Link statistics RX__
+## **0x1C Link statistics RX**
 
 ```cpp
     uint8_t rssi_db;        // RSSI (dBm * -1)
@@ -473,7 +481,7 @@ same as 0x16, but same conversion style as 0x17
     uint8_t rf_power_db;    // rf power in dBm
 ```
 
-## __0x1D Link statistics TX__
+## **0x1D Link statistics TX**
 
 ```cpp
     uint8_t rssi_db;        // RSSI (dBm * -1)
@@ -484,16 +492,18 @@ same as 0x16, but same conversion style as 0x17
     uint8_t fps;            // rf frames per second (fps / 10)
 ```
 
-## __0x1E Attitude__
+## **0x1E Attitude**
+
 > [!WARNING]
 > Angle values must be in -180° +180° range!
+
 ```cpp
     int16_t pitch;  // Pitch angle (LSB = 100 µrad)
     int16_t roll;   // Roll angle  (LSB = 100 µrad)
     int16_t yaw;    // Yaw angle   (LSB = 100 µrad)
 ```
 
-## __0x1F MAVLink FC__
+## **0x1F MAVLink FC**
 
 ```cpp
     int16_t     airspeed;
@@ -502,18 +512,20 @@ same as 0x16, but same conversion style as 0x17
     uint8_t     autopilot_type; // FC type; defined in MAV_AUTOPILOT enum
     uint8_t     firmware_type;  // vehicle type; defined in MAV_TYPE enum
 ```
-__Official MAVLink documentation:__
+
+**Official MAVLink documentation:**
+
 - [MAV_MODE_FLAG enum](https://mavlink.io/en/messages/common.html#MAV_MODE_FLAG)
 - [MAV_AUTOPILOT enum](https://mavlink.io/en/messages/common.html#MAV_AUTOPILOT)
 - [MAV_TYPE enum](https://mavlink.io/en/messages/common.html#MAV_TYPE)
 
-## __0x21 Flight mode__
+## **0x21 Flight mode**
 
 ```cpp
     char[]  Flight mode  // Null-terminated string
 ```
 
-## __0x22 ESP_NOW messages__
+## **0x22 ESP_NOW messages**
 
 ```cpp
     uint8_t VAL1;           // Used for Seat Position of the Pilot
@@ -523,19 +535,20 @@ __Official MAVLink documentation:__
     char    FREE_TEXT[20];  // Free text of 20 character at the bottom of the screen
 ```
 
-## __0x27 reserved__
+## **0x27 reserved**
 
-# __Extended frame types__
+# **Extended frame types**
+
 Frames with type 0x28 and higher (except explicitly mentioned) have extended header (with destination and origin).
 
-## __0x28 Parameter ping devices__
+## **0x28 Parameter ping devices**
 
-The host can ping a specific device (destination node address of device) or all devices 
-(destination node address 0x00 Broadcast address) and they will answer with the [Parameter device 
-information frame](#0x29-parameter-device-information). 
+The host can ping a specific device (destination node address of device) or all devices
+(destination node address 0x00 Broadcast address) and they will answer with the [Parameter device
+information frame](#0x29-parameter-device-information).
 The frame has no payload.
 
-## __0x29 Parameter device information__
+## **0x29 Parameter device information**
 
 ```cpp
     char[]      Device_name;        // Null-terminated string
@@ -546,15 +559,17 @@ The frame has no payload.
     uint8_t     Parameter_version_number;
 ```
 
-## __Chunks__
+## **Chunks**
+
 Maximum CRSF frame size is 64 bytes (including sync byte and CRC).
-The host should always read ([0x2C Parameter settings (read)](#0x2c-parameter-settings-read)) 
+The host should always read ([0x2C Parameter settings (read)](#0x2c-parameter-settings-read))
 chunk number 0 by default.
-If the read parameter ([0x2B Parameter settings (entry)](#0x2b-parameter-settings-entry)) fits the 
+If the read parameter ([0x2B Parameter settings (entry)](#0x2b-parameter-settings-entry)) fits the
 maximum size it will answer with chunks remaining 0 inside the parameter frame.
 Otherwise, it will send how many chunks are left to read.
 
-__Example of Parameter settings frames (0x2B and 0x2C) chain:__
+**Example of Parameter settings frames (0x2B and 0x2C) chain:**
+
 ```mermaid
 ---
 title: Example
@@ -577,16 +592,17 @@ sequenceDiagram
     Device->>Host: (0x2B) Reply: Param 3, Chunks remaining: 0
 ```
 
-__Payload of chunk frames has the following structure:__
+**Payload of chunk frames has the following structure:**
+
 ```cpp
 uint8_t Parameter_number;                           // starting from 0
 uint8_t Parameter_chunks_remaining;                 // Chunks remaining count
         Part of Parameter settings (entry) payload. // up to 56 bytes
 ```
 
-## __0x2B Parameter settings (entry)__
+## **0x2B Parameter settings (entry)**
 
-This is how a device (node address) can share a parameter to another device. See [Chunks](#chunks) 
+This is how a device (node address) can share a parameter to another device. See [Chunks](#chunks)
 
 > [!NOTE]
 > If Data_type_payload_chunk <= 56 it can be sent in 1 frame, otherwise payload will be split into 2 or more frames.
@@ -605,7 +621,7 @@ This is how a device (node address) can share a parameter to another device. See
     uint8_t         CRC_8;                      // Frame CRC (see CRC topic)
 ```
 
-### __Parameter type definitions and hidden bit__
+### **Parameter type definitions and hidden bit**
 
 Parameter type is 8bit wide. The bit 7 indicates if the parameter is hidden (1 = hidden / 0 = visible).
 This gives the ability to dynamically show or hide parameters depending on other parameters.
@@ -630,21 +646,22 @@ enum data_type
 }
 ```
 
-### __OUT_OF_RANGE__
+### **OUT_OF_RANGE**
 
 This type will be sent if a parameter number out of the device parameter range will be requested.
 It will be also sent as the last parameter to let the host know the end of the parameter list on a Parameters settings list (read request).
 
-### __UINT8, INT8, UINT16, INT16, UINT32, INT32__
+### **UINT8, INT8, UINT16, INT16, UINT32, INT32**
 
 Suggested for deprecation. These are currently implemented via FLOAT, which is more general.
 
-### __FLOAT__
-Value, min, max and default are sent as an INT32. 
+### **FLOAT**
+
+Value, min, max and default are sent as an INT32.
 The decimal point value tells how many digits of the value are behind the decimal point.
 Step size is the recommended increment or decrement value to modify the value.
 
-__Float payload__
+**Float payload**
 
 ```cpp
     uint8_t         Parent_folder;              // Parameter number of the parent folder,
@@ -660,20 +677,22 @@ __Float payload__
     char[]          Unit;                       // Null-terminated string
 ```
 
-### __TEXT_SELECTION__
+### **TEXT_SELECTION**
+
 The value part of this entry is separated in two parts. First part is a char array with all
 possible values in text format. They are separated by a semicolon (;) and the array is
 null-terminated at the end. The second part is an uint8_t variable with the current value. The
 min, max and default value is represented as uint8_t number where a 0 represents the first
 text. To modify this parameter only the uint8_t value needs to be sent for the new value.
 
-__Text selection payload__
+**Text selection payload**
+
 ```cpp
-    uint8_t         Parent folder;              // Parameter number of the parent folder, 
+    uint8_t         Parent folder;              // Parameter number of the parent folder,
                                                 // 0 means root folder
     enum data_type  Data type;                  // 0x09 = text selection
     char[]          Name;                       // Null-terminated string
-    char[]          Options;                    // Null-terminated string, the string is 
+    char[]          Options;                    // Null-terminated string, the string is
                                                 // semicolon-delimited list of values
     uint8_t         Value;
     uint8_t         Min;
@@ -682,14 +701,15 @@ __Text selection payload__
     char[]          Unit;                       // Null-terminated string
 ```
 
-### __STRING__
+### **STRING**
 
 This type is for text modification. Only the current text will be transmitted. There is no min,
 max and default entry sent for this type.
 
-__String payload__
+**String payload**
+
 ```cpp
-    uint8_t         Parent_folder;              // Parameter number of the parent folder, 
+    uint8_t         Parent_folder;              // Parameter number of the parent folder,
                                                 // 0 means root folder
     enum data_type  Data_type;                  // 0x0a = string
     char[]          Name;                       // Null-terminated string
@@ -697,47 +717,49 @@ __String payload__
     uint8_t         String_max_length;          // for string type only
 ```
 
-### __FOLDER__
+### **FOLDER**
 
-Folder is used to make a better structure of the parameters.  
-Every parameter has a parent entry where the parameter can link to the parent folder.  
-Additionally, the folder will provide a list of its children and append the folder name.  
-The end of the list is marked with a 0xFF byte.  
+Folder is used to make a better structure of the parameters.
+Every parameter has a parent entry where the parameter can link to the parent folder.
+Additionally, the folder will provide a list of its children and append the folder name.
+The end of the list is marked with a 0xFF byte.
 The list will hold the parameter number of the children.
 
-__Folder payload__
+**Folder payload**
+
 ```cpp
-    uint8_t         Parent_folder;              // Parameter number of the parent folder, 
+    uint8_t         Parent_folder;              // Parameter number of the parent folder,
                                                 // 0 means root folder
     enum data_type  Data_type;                  // 0x0b = folder
     char[]          Name;                       // Null-terminated string
     uint8_t[]       List_of_children;           // with 0xFF entry to mark the list end
 ```
 
-### __INFO__
+### **INFO**
 
 Value is a null terminated string. Same as STRING, except that INFO entry cannot be modified and doesn’t include maximum length.
 
-__Info payload__
+**Info payload**
+
 ```cpp
-    uint8_t         Parent_folder;              // Parameter number of the parent folder, 
+    uint8_t         Parent_folder;              // Parameter number of the parent folder,
                                                 // 0 means root folder
     enum data_type  Data_type;                  // 0x0c = info
     char[]          Name;                       // Null-terminated string
     char[]          Info;                       // Null-terminated string
 ```
 
-### __COMMAND__
+### **COMMAND**
 
-With the type command the host is able to run/execute a function on a device. This can be anything: link bind crossfire, calibrate gyro/acc, ect.  
-The device default state is READY. Once the host wants to execute the function it writes the parameter with status START.  
-Depending on the function the device switches to PROGRESS, CONFIRMATION_NEEDED or READY.  
-When the device sends CONFIRMATION_NEEDED the host will show a confirmation box with “confirm” or “cancel” selection.  
-If the user selects one the selection will be transmitted to the device and the function continues to execute.  
-With the field Info the device can send additional information to the host.  
+With the type command the host is able to run/execute a function on a device. This can be anything: link bind crossfire, calibrate gyro/acc, ect.
+The device default state is READY. Once the host wants to execute the function it writes the parameter with status START.
+Depending on the function the device switches to PROGRESS, CONFIRMATION_NEEDED or READY.
+When the device sends CONFIRMATION_NEEDED the host will show a confirmation box with “confirm” or “cancel” selection.
+If the user selects one the selection will be transmitted to the device and the function continues to execute.
+With the field Info the device can send additional information to the host.
 If the host sends status POLL, it will force the device to send an updated status of the 0x2B Parameter settings (entry).
 
-__Command payload__
+**Command payload**
 
 ```cpp
 struct
@@ -762,7 +784,7 @@ enum cmd_status
 }
 ```
 
-__Command chain example__
+**Command chain example**
 
 ```mermaid
 sequenceDiagram
@@ -771,25 +793,26 @@ sequenceDiagram
     Device->>Host: Send: COMMAND, Name = Bind, Status = READY, Info = NULL
     Host->>Device: Write: Status = START
     Device->>Host: Send Parameter: COMMAND, Name = Bind, Status = PROGRESS, Info = Binding
-    
+
     Host->>Device: (optional) Status = POLL
     note over Host: it’s a must to send POLL from host if we wanna get the <br/>latest parameter info.For example: while getting parameter “bind”<br/>from TX (0xEE) is a must,otherwise we don’t know the RX firmware<br/>updating info
     Host->>Device: (optional) Status = POLL
     Host->>Device: (optional) Status = POLL
-    
+
     note over Device: Device completed bind process
     Device->>Host: Send Parameter: COMMAND, Name = Bind, Status = READY, Info = OK
 ```
 
-## __0x2C Parameter settings (read)__
+## **0x2C Parameter settings (read)**
 
 Request a specific parameter. This command is for re-request a parameter/chunk that didn’t make it through the link.
+
 ```cpp
     uint8_t Parameter_number;
     uint8_t Parameter_chunk_number; // Chunk number to request, starts with 0
 ```
 
-## __0x2D Parameter value (write)__
+## **0x2D Parameter value (write)**
 
 This command is for override a parameter. The destination node will answer with a
 Parameter value frame sent to the origin node address for verification.
@@ -800,14 +823,16 @@ Parameter value frame sent to the origin node address for verification.
 ```
 
 > [!NOTE]
-> Size depending on [data type](#parameter-type-definitions-and-hidden-bit), otherwise this entry 
+> Size depending on [data type](#parameter-type-definitions-and-hidden-bit), otherwise this entry
 > is not sent, f.e.:
+>
 > - for TEXT_SELECTION - size 1;
 > - for FLOAT - size 4.
 
-## __0x32 Direct Commands__
+## **0x32 Direct Commands**
 
 Command frame
+
 ```cpp
     uint8_t     Command_ID;
     uint8_t[]   Payload;        // depending on Command ID
@@ -844,8 +869,8 @@ unsigned char command_crc8tab[256] = {
     0x5A, 0xE0, 0x94, 0x2E, 0x7C, 0xC6, 0xB2, 0x08, 0x16, 0xAC, 0xD8, 0x62, 0x30, 0x8A, 0xFE, 0x44};
 ```
 
+### **0x32.0xFF Command ACK**
 
-### __0x32.0xFF Command ACK__
 ```cpp
     uint8_t Command_ID;;
     uint8_t SubCommand_ID;
@@ -855,15 +880,14 @@ unsigned char command_crc8tab[256] = {
     uint8_t[] or char[] Information; // null terminated string
 ```
 
-
-### __0x32.0x01 FC Commands__
+### **0x32.0x01 FC Commands**
 
 ```cpp
 - 0x01 Force Disarm
 - 0x02 Scale Channel
 ```
 
-### __0x32.0x03 Bluetooth Command__
+### **0x32.0x03 Bluetooth Command**
 
 ```cpp
 - 0x01 Reset
@@ -872,14 +896,14 @@ unsigned char command_crc8tab[256] = {
 - 0x64 Echo
 ```
 
-### __0x32.0x05 OSD Commands__
+### **0x32.0x05 OSD Commands**
 
 ```cpp
 - 0x01 Send Buttons:
   - uint8_t Buttons bitwise (Bit 7=Enter, 6=Up, 5=Down, 4=Left, 3=Right)
 ```
 
-### __0x32.0x08 VTX Commands__
+### **0x32.0x08 VTX Commands**
 
 ```cpp
 - 0x01 DISCONTINUED VTX Change Channel
@@ -893,14 +917,14 @@ unsigned char command_crc8tab[256] = {
   - uint8_t pitmode_switch:4; (0=Ch5, 1=Ch5 Inv, … , 15=Ch12 Inv)
 - 0x05 Power up from PitMode (bare command)
 - 0x06 Set Dynamic Power (15/05/2020 in EVO, PRO32 HV, PRO32 NANO)
-    NOTE: Needs to be sent at 1Hz. If not received for 3s the VTX 
+    NOTE: Needs to be sent at 1Hz. If not received for 3s the VTX
           will revert to “0x08 Set Power” power setting
   - uint8_t Power (dBm) (0dBm can be considered as PitMode Power)
 - 0x08 Set Power
   - uint8_t Power (dBm) (0dBm can be considered as PitMode Power)
 ```
 
-### __0x32.0x09 LED__
+### **0x32.0x09 LED**
 
 ```cpp
 - 0x01 Set to default (revert to target specific settings)
@@ -931,7 +955,7 @@ unsigned char command_crc8tab[256] = {
   - 8 bits V (0-100%)
 ```
 
-### __0x32.0x0A General__
+### **0x32.0x0A General**
 
 ```cpp
 - 0x04 - 0x61 reserved
@@ -943,7 +967,8 @@ unsigned char command_crc8tab[256] = {
   - bool    response // (1 = accepted / 0 = rejected)
 ```
 
-### __0x32.0x10 Crossfire__
+### **0x32.0x10 Crossfire**
+
 ```cpp
 - 0x01 Set receiver in bind mode
 - 0x02 Cancel bind mode
@@ -957,9 +982,9 @@ unsigned char command_crc8tab[256] = {
 - 0x09 reserved
 ```
 
-### __0x32.0x12 reserved__
+### **0x32.0x12 reserved**
 
-### __0x32.0x20 Flow control frame__
+### **0x32.0x20 Flow control frame**
 
 A device can limit data rate or subscribe to a specific frame.
 
@@ -971,21 +996,22 @@ A device can limit data rate or subscribe to a specific frame.
   - uint8_t  Frame type
 ```
 
-### __0x32.0x22 Screen Command__
+### **0x32.0x22 Screen Command**
 
 For all device which has LCD Screen
 
-#### __0x32.0x22.0x01 PopUp Message Start__
+#### **0x32.0x22.0x01 PopUp Message Start**
+
 ```cpp
     char[]  Header;                 // Null terminated string
     char[]  Info message;           // Null terminated string
     uint8_t Max_timeout_interval;   // Time in seconds
     bool    Close_button_option;
-    struct                          // optional field. If its first byte is null 
-                                    // (selectionText is empty) 
-                                    // then it's only 1-byte (null) long. 
+    struct                          // optional field. If its first byte is null
+                                    // (selectionText is empty)
+                                    // then it's only 1-byte (null) long.
     {
-        char[]  selectionText;      // Null-terminated string. If empty, 
+        char[]  selectionText;      // Null-terminated string. If empty,
                                     // then other fields don't exist.
         uint8_t value;
         uint8_t minValue;
@@ -993,30 +1019,30 @@ For all device which has LCD Screen
         uint8_t defaultValue;
         char[]  unit;               // Null terminated string of measurement unit
     }       add_data;               // additional data to show (e.g. percentage).
-    char[]  possible_values;        // optional field. char array with all possible response 
-                                    // values in text format, 
-                                    // they are separated by a semicolon (;) and the array 
+    char[]  possible_values;        // optional field. char array with all possible response
+                                    // values in text format,
+                                    // they are separated by a semicolon (;) and the array
                                     // is null-terminated.
 ```
 
 > [!NOTE]
 > optional fields might either start with null or not even fit in the frame. Analyze frame size and don't read optional fields beyond frame payload.
 
-#### __0x32.0x22.0x02 Selection return value__
+#### **0x32.0x22.0x02 Selection return value**
 
 ```cpp
     uint8_t value;
     bool    responce;   // true(Process)/false(Cancel)
 ```
 
-#### __0x32.0x22.0x03 reserved__
+#### **0x32.0x22.0x03 reserved**
 
+#### **0x32.0x22.0x04 reserved**
 
-#### __0x32.0x22.0x04 reserved__
+## **0x34 Logging**
 
-
-## __0x34 Logging__
 this frame has simple (short) header. Used for degug purpose only.
+
 ```cpp
     uint16_t logtype;
     uint32_t timestamp;
@@ -1026,28 +1052,28 @@ this frame has simple (short) header. Used for degug purpose only.
     uint32_t paraN;
 ```
 
-## __0x36 reserved__
+## **0x36 reserved**
 
-## __0x38 reserved__
+## **0x38 reserved**
 
-## __0x3A - Remote related frames__
+## **0x3A - Remote related frames**
 
-### __0x3A.0x01 - 0x3A.0x09 - reserved__
+### **0x3A.0x01 - 0x3A.0x09 - reserved**
 
-### __0x3A.0x10 timing correction (“CRSFshot”)__
+### **0x3A.0x10 timing correction (“CRSFshot”)**
 
 aka “RC-sync”; aka “timing correction frame” (in EdgeTX).
 
 ```cpp
     uint32_t    update_interval;    // LSB = 100ns
-    int32       offset;             // LSB = 100ns, positive values = data came too early, 
+    int32       offset;             // LSB = 100ns, positive values = data came too early,
                                     // negative = late.
 ```
 
 Despite that the values are in 100ns resolution, at least in EdgeTX it’s
 rounded to 1µs resolution 16-bit values right on arriving.
 
-## __0x3C Game__
+## **0x3C Game**
 
 ```cpp
 - 0x01 Add points
@@ -1056,26 +1082,28 @@ rounded to 1µs resolution 16-bit values right on arriving.
   - uint16 code
 ```
 
-## __0x3E reserved__
+## **0x3E reserved**
 
+## **0x40 reserved**
 
-## __0x40 reserved__
+## **0x78 - 0x79 KISS Fc reserved**
 
-## __0x78 - 0x79 KISS Fc reserved__
+## **0x7A MSP request / 0x7B response**
 
-## __0x7A MSP request / 0x7B response__
+**0x7A**
 
-__0x7A__
-- CRSF frame which wraps MSP request __(‘$M<’ or ‘$X<’)__
+- CRSF frame which wraps MSP request **(‘$M<’ or ‘$X<’)**
 - Supported by Betaflight devices
 - Supported devices will respond with 0x7B
 
-__0x7B__
-- CRSF frame which wraps MSP response __(‘$M>’,’$X>’,‘$M!’,’$X!’)__
+**0x7B**
+
+- CRSF frame which wraps MSP response **(‘$M>’,’$X>’,‘$M!’,’$X!’)**
 - Supported by Betaflight devices
 - Supported device will send this frame in response of MSP_Request (0x7A)
 
 MSP frame over CRSF Payload packing:
+
 - MSP frame is stripped from header ($ + M/X + [/]/!) and CRC
 - Resulted MSP-body might be divided in chunks if it doesn't fit in one CRSF-frame.
 - A ‘Status’ byte is put before MSP-body in each CRSF-frame.
@@ -1086,16 +1114,16 @@ MSP frame over CRSF Payload packing:
   - bit 7 represents an error (for response only).
 - Chunk size of the MSP-body is calculated from size of CRSF frame. But size of the MSP-body must be parsed from the MSP-body itself (with respect to MSP version and Jumbo-frame).
 - The last/only CRSF-frame might be longer than needed. In such a case, the extra bytes must be ignored.
-- Maximum chunk size is defined by maximum length of CRSF frame 64 bytes, therefore, maximum MSP-chunk length is __57__ bytes. Minimum chunk length might by
+- Maximum chunk size is defined by maximum length of CRSF frame 64 bytes, therefore, maximum MSP-chunk length is **57** bytes. Minimum chunk length might by
   anything, but the first chunk must consist of size and function ID (i.e., 5 bytes for MSPv2).
 - CRC of the MSP frame is not sent because it’s already protected by CRC of CRSF. If MSP CRC is needed, it should be calculated at the receiving point.
 - MSP-response must be sent to the origin of the MSP-request. It means that _[destination]_ and _[origin]_ bytes of CRSF-header in response must be the same as in request but swapped.
 
-## __0x80 Ardupilot reserved__
+## **0x80 Ardupilot reserved**
 
-## __0xAA CRSF MAVLink envelope__
+## **0xAA CRSF MAVLink envelope**
 
-- CRSF MAVLink envelope is designed to transfer MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames. 
+- CRSF MAVLink envelope is designed to transfer MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames.
   Since MAVLink frames are generally much longer than CRSF frames (281 bytes for MAVLink2 vs 64 bytes for CRSF), MAVLink frames will be broken up into chunks.
 - Note that encoding / decoding correct chunk count while writing / reading MAVLink envelopes should be handled by the user to ensure data integrity.
 
@@ -1114,7 +1142,7 @@ flowchart LR
   id0["Sync byte (0xC8)"] ~~~ id1[Frame Length] ~~~ id2["Type (0xAA)"] ~~~ id3["totalChunk(bit3 - 7) :<br/> currChunk(bit0-3)"] ~~~ id4[dataSize] ~~~ id5[dataStart ...<br/> dataEnd] ~~~ id6[CRC]
 ```
 
-## __0xAC CRSF MAVLink system-status sensor__
+## **0xAC CRSF MAVLink system-status sensor**
 
 - CRSF frame for packing info of MAVLink enabled flight controller sensor status
 - To decode data packed within the frame, please refer to [the official wiki](https://mavlink.io/en/messages/common.html#MAV_SYS_STATUS_SENSOR)
@@ -1125,6 +1153,4 @@ flowchart LR
     uint32_t sensor_health;
 ```
 
-
-# __End of document__
-
+# **End of document**
