@@ -86,7 +86,8 @@
   - [**0x40 reserved**](#0x40-reserved)
   - [**0x78 - 0x79 KISS Fc reserved**](#0x78---0x79-kiss-fc-reserved)
   - [**0x7A MSP request / 0x7B response**](#0x7a-msp-request--0x7b-response)
-  - [**0x80 Ardupilot reserved**](#0x80-ardupilot-reserved)
+  - [**0x7F ArduPilot legacy reserved**](#0x7F-ardupilot-legacy-reserved)
+  - [**0x80 ArduPilot reserved passthrough frame**](#0x80-ardupilot-reserved-passthrough-frame)
   - [**0xAA CRSF MAVLink envelope**](#0xaa-crsf-mavlink-envelope)
   - [**0xAC CRSF MAVLink system-status sensor**](#0xac-crsf-mavlink-system-status-sensor)
 - [**End of document**](#end-of-document)
@@ -1119,7 +1120,31 @@ MSP frame over CRSF Payload packing:
 - CRC of the MSP frame is not sent because it’s already protected by CRC of CRSF. If MSP CRC is needed, it should be calculated at the receiving point.
 - MSP-response must be sent to the origin of the MSP-request. It means that _[destination]_ and _[origin]_ bytes of CRSF-header in response must be the same as in request but swapped.
 
-## **0x80 Ardupilot reserved**
+## **0x7F ArduPilot legacy reserved**
+## **0x80 ArduPilot reserved passthrough frame**
+- CRSF broadcast frame which wraps an ArduPilot "passthrough" packet
+- Passthrough packets come in three different flavours
+- Single packet frame, used on fast links where one passthrough telemetry frame is returned for each RC frame
+```cpp
+      uint8_t sub_type = 0xF0;
+      uint16_t appid;
+      uint32_t data;
+```
+- Multi-packet frame, used on slow links - packing up to 9 passthrough telemetry frames into the return from each RC frame
+```cpp
+      uint8_t sub_type = 0xF2;
+      uint8_t size;
+      struct PassthroughTelemetryPacket {
+          uint16_t appid;
+          uint32_t data;
+      } packets[9];
+```
+- Status text frame
+```cpp
+      uint8_t sub_type = 0xF1;
+      uint8_t severity;
+      char text[50];  // ( Null-terminated string )
+```
 
 ## **0xAA CRSF MAVLink envelope**
 
