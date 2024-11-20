@@ -1,0 +1,13 @@
+# Visual Studio Settings
+.vs/
+
+# VS Code Settings
+.vscode/
+
+# VIM files
+*.swp
+*.swo
+
+# Sublime Text files
+*.sublime-project
+*.sublime-workspace
