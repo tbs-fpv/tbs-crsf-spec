@@ -88,6 +88,7 @@
   - [**0x7A MSP request / 0x7B response**](#0x7a-msp-request--0x7b-response)
   - [**0x7F ArduPilot legacy reserved**](#0x7f-ardupilot-legacy-reserved)
   - [**0x80 ArduPilot reserved passthrough frame**](#0x80-ardupilot-reserved-passthrough-frame)
+  - [**0x81, 0x82 mLRS reserved**](#0x81-0x82-mlrs-reserved)
   - [**0xAA CRSF MAVLink envelope**](#0xaa-crsf-mavlink-envelope)
   - [**0xAC CRSF MAVLink system-status sensor**](#0xac-crsf-mavlink-system-status-sensor)
 - [**End of document**](#end-of-document)
@@ -1152,6 +1153,30 @@ Passthrough packets come in three different flavours:
       uint8_t severity;
       char text[50];  // ( Null-terminated string )
 ```
+
+## **0x81, 0x82 mLRS reserved**
+
+The 0x80 and 0x81 broadcast frames establish the communication of mLRS TX modules with mLRS Configuration Lua scripts running on e.g. EdgeTx and OpenTx remote controllers. They encapsulate mLRS 'mBridge' protocol messages in CRSF frames. The protocol enables the setting of parameters and other functionality, but especially also communicates meta data which are needed for mLRS' parameter model, providing various information to the user, version control, and more features specific to the mLRS link system.
+
+**0x80**: Communication from Lua script/remote controller to TX module. The frame format is:
+
+```mermaid
+flowchart LR
+    0xEE ~~~ id0[Frame Length] ~~~ 0x80 ~~~ 0x4F ~~~ 0x57 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
+```
+
+The two bytes 0x4F, 0x57 are the sync bytes of the mBridge protocol.
+
+**0x81**: Communication from TX module to Lua script/remote controller. The frame format is:
+
+```mermaid
+flowchart LR
+    0xEA ~~~ id0[Frame Length] ~~~ 0x81 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
+```
+
+The Frame Length and CRC are as per the CRSF specification in the above. The mBridge protocol is relatively complicated, as it serves mLRS for various additional purposes besides communication with the Lua configuration script. 
+
+mLRS project home: https://github.com/olliw42/mLRS/
 
 ## **0xAA CRSF MAVLink envelope**
 
