@@ -459,7 +459,7 @@ struct PACKED
     uint8_t     res_configuration:2;            // configuration for the RC data resolution
                                                 // (10 - 13 bits)
     uint8_t     digital_switch_flag:1;          // configuration bit for digital channel
-    uint16_t    channel[]:resulution;           // variable amount of channels
+    uint16_t    channel[]:resolution;           // variable amount of channels
                                                 // (with variable resolution based on the
                                                 // res_configuration)
                                                 // based on the frame size
@@ -753,7 +753,7 @@ Value is a null terminated string. Same as STRING, except that INFO entry cannot
 
 ### **COMMAND**
 
-With the type command the host is able to run/execute a function on a device. This can be anything: link bind crossfire, calibrate gyro/acc, ect.
+With the type command the host is able to run/execute a function on a device. This can be anything: link bind crossfire, calibrate gyro/acc, etc.
 The device default state is READY. Once the host wants to execute the function it writes the parameter with status START.
 Depending on the function the device switches to PROGRESS, CONFIRMATION_NEEDED or READY.
 When the device sends CONFIRMATION_NEEDED the host will show a confirmation box with “confirm” or “cancel” selection.
@@ -943,7 +943,7 @@ unsigned char command_crc8tab[256] = {
   - 7 bits S_Stop (0-100%)
   - 8 bits V_Stop (0-100%)
 - 0x04 Override blink (packed)
-  - uint16 Intervall
+  - uint16 Interval
   - 9 bits H_Start (0-359°)
   - 7 bits S_Start (0-100%)
   - 8 bits V_Start (0-100%)
@@ -951,7 +951,7 @@ unsigned char command_crc8tab[256] = {
   - 7 bits S_Stop (0-100%)
   - 8 bits V_Stop (0-100%)
 - 0x05 Override shift (packed)
-  - uint16 Intervall
+  - uint16 Interval
   - 9 bits H (0-359°)
   - 7 bits S (0-100%)
   - 8 bits V (0-100%)
@@ -1034,7 +1034,7 @@ For all device which has LCD Screen
 
 ```cpp
     uint8_t value;
-    bool    responce;   // true(Process)/false(Cancel)
+    bool    response;   // true(Process)/false(Cancel)
 ```
 
 #### **0x32.0x22.0x03 reserved**
