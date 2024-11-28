@@ -99,8 +99,7 @@
 - Low latency high update rate for RC signals between RC - TX and RX - FC
 - Bidirectional communication
 - Share telemetry from flying platform to the RC
-- Edit configuration for direct connected devices and remotely connected devices (RC
-  can configure FC or OSD over CRSF)
+- Edit configuration for direct connected devices and remotely connected devices (RC can configure FC or OSD over CRSF)
 - Share receiver serial number to TX, so it can be matched to model memory.
 
 # **Purpose**
@@ -122,11 +121,8 @@ This document serves as a public "single source of truth", maintained by TBS, do
 ## **Single wire half duplex UART**
 
 This configuration is usually used between RC and TX. The RC acts as master in this case and TX responds with telemetry if it’s synchronized to the RC frames sent by the RC. The RC must send only one frame with pre-configured or negotiated frequency and must switch the line into the high-impedance mode and wait for a response from TX.
-The UART by default runs at **400 kbaud 8N1** (inverted or non-inverted) at **3.3V** level, but it
-also supports 115.2 kbaud, and higher (1Mbaud, 2Mbaud) depending on hardware (see [**0x70 CRSF
-Protocol Speed Proposal**](#0x320x0a-general)). It is recommended that TX
-modules are configured to the same baud rate, or that they latch on to the correct baudrate automatically.
-The maximum frame-rate must be chosen depending on the baudrate for be able for RC and TX send frames with maximum length (64 bytes) in one frame.
+
+The UART by default runs at **400 kbaud 8N1** (inverted or non-inverted) at **3.3V** level, but it also supports 115.2 kbaud, and higher (1Mbaud, 2Mbaud) depending on hardware (see [**0x70 CRSF Protocol Speed Proposal**](#0x320x0a-general)). It is recommended that TX modules are configured to the same baud rate, or that they latch on to the correct baudrate automatically. The maximum frame-rate must be chosen depending on the baudrate for be able for RC and TX send frames with maximum length (64 bytes) in one frame.
 
 ## **Dual wire / full duplex UART**
 
@@ -411,9 +407,7 @@ Uplink is the connection from the ground to the UAV and downlink the opposite di
 
 ## **0x16 RC channels packed payload**
 
-16 channels packed into 22 bytes.
-In case of a Failsafe, this frame will no longer be sent (when the failsafe type is set to "cut").
-It is recommended to wait for 1 second before starting the FC failsafe routine.
+16 channels packed into 22 bytes. In case of a Failsafe, this frame will no longer be sent (when the failsafe type is set to "cut"). It is recommended to wait for 1 second before starting the FC failsafe routine.
 
 ```cpp
 #define TICKS_TO_US(x)  ((x - 992) * 5 / 8 + 1500)
@@ -545,10 +539,7 @@ Frames with type 0x28 and higher (except explicitly mentioned) have extended hea
 
 ## **0x28 Parameter ping devices**
 
-The host can ping a specific device (destination node address of device) or all devices
-(destination node address 0x00 Broadcast address) and they will answer with the [Parameter device
-information frame](#0x29-parameter-device-information).
-The frame has no payload.
+The host can ping a specific device (destination node address of device) or all devices (destination node address 0x00 Broadcast address) and they will answer with the [Parameter device information frame](#0x29-parameter-device-information). The frame has no payload.
 
 ## **0x29 Parameter device information**
 
@@ -563,12 +554,7 @@ The frame has no payload.
 
 ## **Chunks**
 
-Maximum CRSF frame size is 64 bytes (including sync byte and CRC).
-The host should always read ([0x2C Parameter settings (read)](#0x2c-parameter-settings-read))
-chunk number 0 by default.
-If the read parameter ([0x2B Parameter settings (entry)](#0x2b-parameter-settings-entry)) fits the
-maximum size it will answer with chunks remaining 0 inside the parameter frame.
-Otherwise, it will send how many chunks are left to read.
+Maximum CRSF frame size is 64 bytes (including sync byte and CRC). The host should always read ([0x2C Parameter settings (read)](#0x2c-parameter-settings-read)) chunk number 0 by default. If the read parameter ([0x2B Parameter settings (entry)](#0x2b-parameter-settings-entry)) fits the maximum size it will answer with chunks remaining 0 inside the parameter frame. Otherwise, it will send how many chunks are left to read.
 
 **Example of Parameter settings frames (0x2B and 0x2C) chain:**
 
@@ -625,9 +611,7 @@ This is how a device (node address) can share a parameter to another device. See
 
 ### **Parameter type definitions and hidden bit**
 
-Parameter type is 8bit wide. The bit 7 indicates if the parameter is hidden (1 = hidden / 0 = visible).
-This gives the ability to dynamically show or hide parameters depending on other parameters.
-Bit 6-0 holds the type of parameter information (enum data_type).
+Parameter type is 8bit wide. The bit 7 indicates if the parameter is hidden (1 = hidden / 0 = visible). This gives the ability to dynamically show or hide parameters depending on other parameters. Bit 6-0 holds the type of parameter information (enum data_type).
 
 ```cpp
 enum data_type
@@ -650,8 +634,7 @@ enum data_type
 
 ### **OUT_OF_RANGE**
 
-This type will be sent if a parameter number out of the device parameter range will be requested.
-It will be also sent as the last parameter to let the host know the end of the parameter list on a Parameters settings list (read request).
+This type will be sent if a parameter number out of the device parameter range will be requested. It will be also sent as the last parameter to let the host know the end of the parameter list on a Parameters settings list (read request).
 
 ### **UINT8, INT8, UINT16, INT16, UINT32, INT32**
 
@@ -659,9 +642,7 @@ Suggested for deprecation. These are currently implemented via FLOAT, which is m
 
 ### **FLOAT**
 
-Value, min, max and default are sent as an INT32.
-The decimal point value tells how many digits of the value are behind the decimal point.
-Step size is the recommended increment or decrement value to modify the value.
+Value, min, max and default are sent as an INT32. The decimal point value tells how many digits of the value are behind the decimal point. Step size is the recommended increment or decrement value to modify the value.
 
 **Float payload**
 
@@ -681,11 +662,7 @@ Step size is the recommended increment or decrement value to modify the value.
 
 ### **TEXT_SELECTION**
 
-The value part of this entry is separated in two parts. First part is a char array with all
-possible values in text format. They are separated by a semicolon (;) and the array is
-null-terminated at the end. The second part is an uint8_t variable with the current value. The
-min, max and default value is represented as uint8_t number where a 0 represents the first
-text. To modify this parameter only the uint8_t value needs to be sent for the new value.
+The value part of this entry is separated in two parts. First part is a char array with all possible values in text format. They are separated by a semicolon (;) and the array is null-terminated at the end. The second part is an uint8_t variable with the current value. The min, max and default value is represented as uint8_t number where a 0 represents the first text. To modify this parameter only the uint8_t value needs to be sent for the new value.
 
 **Text selection payload**
 
@@ -705,8 +682,7 @@ text. To modify this parameter only the uint8_t value needs to be sent for the n
 
 ### **STRING**
 
-This type is for text modification. Only the current text will be transmitted. There is no min,
-max and default entry sent for this type.
+This type is for text modification. Only the current text will be transmitted. There is no min, max and default entry sent for this type.
 
 **String payload**
 
@@ -721,11 +697,7 @@ max and default entry sent for this type.
 
 ### **FOLDER**
 
-Folder is used to make a better structure of the parameters.
-Every parameter has a parent entry where the parameter can link to the parent folder.
-Additionally, the folder will provide a list of its children and append the folder name.
-The end of the list is marked with a 0xFF byte.
-The list will hold the parameter number of the children.
+Folder is used to make a better structure of the parameters. Every parameter has a parent entry where the parameter can link to the parent folder. Additionally, the folder will provide a list of its children and append the folder name. The end of the list is marked with a 0xFF byte. The list will hold the parameter number of the children.
 
 **Folder payload**
 
@@ -754,11 +726,11 @@ Value is a null terminated string. Same as STRING, except that INFO entry cannot
 ### **COMMAND**
 
 With the type command the host is able to run/execute a function on a device. This can be anything: link bind crossfire, calibrate gyro/acc, etc.
-The device default state is READY. Once the host wants to execute the function it writes the parameter with status START.
-Depending on the function the device switches to PROGRESS, CONFIRMATION_NEEDED or READY.
-When the device sends CONFIRMATION_NEEDED the host will show a confirmation box with “confirm” or “cancel” selection.
-If the user selects one the selection will be transmitted to the device and the function continues to execute.
-With the field Info the device can send additional information to the host.
+
+The device default state is READY. Once the host wants to execute the function it writes the parameter with status START. Depending on the function the device switches to PROGRESS, CONFIRMATION_NEEDED or READY.
+
+When the device sends CONFIRMATION_NEEDED the host will show a confirmation box with “confirm” or “cancel” selection. If the user selects one the selection will be transmitted to the device and the function continues to execute. With the field Info the device can send additional information to the host.
+
 If the host sends status POLL, it will force the device to send an updated status of the 0x2B Parameter settings (entry).
 
 **Command payload**
@@ -816,8 +788,7 @@ Request a specific parameter. This command is for re-request a parameter/chunk t
 
 ## **0x2D Parameter value (write)**
 
-This command is for override a parameter. The destination node will answer with a
-Parameter value frame sent to the origin node address for verification.
+This command is for override a parameter. The destination node will answer with a Parameter value frame sent to the origin node address for verification.
 
 ```cpp
     uint8_t Parameter_number;
@@ -1072,8 +1043,7 @@ aka “RC-sync”; aka “timing correction frame” (in EdgeTX).
                                     // negative = late.
 ```
 
-Despite that the values are in 100ns resolution, at least in EdgeTX it’s
-rounded to 1µs resolution 16-bit values right on arriving.
+Despite that the values are in 100ns resolution, at least in EdgeTX it’s rounded to 1µs resolution 16-bit values right on arriving.
 
 ## **0x3C Game**
 
@@ -1116,8 +1086,7 @@ MSP frame over CRSF Payload packing:
   - bit 7 represents an error (for response only).
 - Chunk size of the MSP-body is calculated from size of CRSF frame. But size of the MSP-body must be parsed from the MSP-body itself (with respect to MSP version and Jumbo-frame).
 - The last/only CRSF-frame might be longer than needed. In such a case, the extra bytes must be ignored.
-- Maximum chunk size is defined by maximum length of CRSF frame 64 bytes, therefore, maximum MSP-chunk length is **57** bytes. Minimum chunk length might by
-  anything, but the first chunk must consist of size and function ID (i.e., 5 bytes for MSPv2).
+- Maximum chunk size is defined by maximum length of CRSF frame 64 bytes, therefore, maximum MSP-chunk length is **57** bytes. Minimum chunk length might by anything, but the first chunk must consist of size and function ID (i.e., 5 bytes for MSPv2).
 - CRC of the MSP frame is not sent because it’s already protected by CRC of CRSF. If MSP CRC is needed, it should be calculated at the receiving point.
 - MSP-response must be sent to the origin of the MSP-request. It means that _[destination]_ and _[origin]_ bytes of CRSF-header in response must be the same as in request but swapped.
 
@@ -1174,14 +1143,13 @@ flowchart LR
     0xEA ~~~ id0[Frame Length] ~~~ 0x81 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
 ```
 
-The Frame Length and CRC are as per the CRSF specification in the above. The mBridge protocol is relatively complicated, as it serves mLRS for various additional purposes besides communication with the Lua configuration script. 
+The Frame Length and CRC are as per the CRSF specification in the above. The mBridge protocol is relatively complicated, as it serves mLRS for various additional purposes besides communication with the Lua configuration script.
 
 mLRS project home: https://github.com/olliw42/mLRS/
 
 ## **0xAA CRSF MAVLink envelope**
 
-- CRSF MAVLink envelope is designed to transfer MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames.
-  Since MAVLink frames are generally much longer than CRSF frames (281 bytes for MAVLink2 vs 64 bytes for CRSF), MAVLink frames will be broken up into chunks.
+- CRSF MAVLink envelope is designed to transfer MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames. Since MAVLink frames are generally much longer than CRSF frames (281 bytes for MAVLink2 vs 64 bytes for CRSF), MAVLink frames will be broken up into chunks.
 - Note that encoding / decoding correct chunk count while writing / reading MAVLink envelopes should be handled by the user to ensure data integrity.
 
 ```cpp
