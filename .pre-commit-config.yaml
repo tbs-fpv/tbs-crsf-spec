@@ -13,3 +13,10 @@ repos:
   rev: v2.3.0
   hooks:
     - id: codespell
+- repo: https://github.com/hukkin/mdformat/
+  rev: 0.7.19
+  hooks:
+    - id: mdformat
+    # Optional plugsins
+      additional_dependencies:
+      - mdformat-gfm  # GitHub Flavored Markdown

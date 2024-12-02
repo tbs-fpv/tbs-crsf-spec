@@ -25,7 +25,7 @@
   - [0x06 GPS Extended](#0x06-gps-extended)
   - [0x07 Variometer Sensor](#0x07-variometer-sensor)
   - [0x08 Battery Sensor](#0x08-battery-sensor)
-  - [0x09 Barometric Altitude \& Vertical Speed](#0x09-barometric-altitude--vertical-speed)
+  - [0x09 Barometric Altitude & Vertical Speed](#0x09-barometric-altitude--vertical-speed)
   - [0x0B Heartbeat](#0x0b-heartbeat)
   - [0x0F Discontinued](#0x0f-discontinued)
   - [0x10 VTX Telemetry](#0x10-vtx-telemetry)
@@ -39,18 +39,18 @@
   - [0x1E Attitude](#0x1e-attitude)
   - [0x1F MAVLink FC](#0x1f-mavlink-fc)
   - [0x21 Flight Mode](#0x21-flight-mode)
-  - [0x22 ESP\_NOW Messages](#0x22-esp_now-messages)
+  - [0x22 ESP_NOW Messages](#0x22-esp_now-messages)
   - [0x27 Reserved](#0x27-reserved)
 - [Extended Frame Types](#extended-frame-types)
   - [0x28 Parameter Ping Devices](#0x28-parameter-ping-devices)
   - [0x29 Parameter Device Information](#0x29-parameter-device-information)
   - [Chunks](#chunks)
   - [0x2B Parameter Settings (Entry)](#0x2b-parameter-settings-entry)
-    - [Parameter Type Definitions \& Hidden Bit](#parameter-type-definitions--hidden-bit)
-    - [OUT\_OF\_RANGE](#out_of_range)
+    - [Parameter Type Definitions & Hidden Bit](#parameter-type-definitions--hidden-bit)
+    - [OUT_OF_RANGE](#out_of_range)
     - [UINT8, INT8, UINT16, INT16, UINT32, INT32](#uint8-int8-uint16-int16-uint32-int32)
     - [FLOAT](#float)
-    - [TEXT\_SELECTION](#text_selection)
+    - [TEXT_SELECTION](#text_selection)
     - [STRING](#string)
     - [FOLDER](#folder)
     - [INFO](#info)
@@ -590,7 +590,7 @@ uint8_t Parameter_chunks_remaining;                 // Chunks remaining count
 This is how a device (node address) can share a parameter to another device. See [Chunks](#chunks)
 
 > [!NOTE]
-> If Data_type_payload_chunk <= 56 it can be sent in 1 frame, otherwise payload will be split into 2 or more frames.
+> If Data_type_payload_chunk \<= 56 it can be sent in 1 frame, otherwise payload will be split into 2 or more frames.
 
 ```cpp
     uint8_t         Sync_byte;                  // 0xc8
@@ -1061,7 +1061,7 @@ Despite that the values are in 100ns resolution, at least in EdgeTX it’s round
 
 **0x7A**
 
-- CRSF frame which wraps MSP request **(‘$M<’ or ‘$X<’)**
+- CRSF frame which wraps MSP request **(‘$M\<’ or ‘$X\<’)**
 - Supported by Betaflight devices
 - Supported devices will respond with 0x7B
 
@@ -1094,6 +1094,7 @@ MSP frame over CRSF Payload packing:
 CRSF broadcast frame which wraps an ArduPilot "passthrough" packet
 
 Passthrough packets come in three different flavours:
+
 - Single packet frame, used on fast links where one passthrough telemetry frame is returned for each RC frame
 
 ```cpp
