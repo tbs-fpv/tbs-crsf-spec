@@ -1,0 +1,23 @@
+# Limit pipelines to merge request events
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+stages:
+  - precheck_stage
+
+.precheck_template:
+  stage: precheck_stage
+  tags:
+    - linux
+  image:
+    name: "${CI_REGISTRY_IMAGE}/tools/precheck:0"
+    entrypoint: [""]
+
+pre_commit_job:
+  extends: .precheck_template
+  script:
+    # Get a list of files modified by the MR, in argument form
+    - MODIFIED_FILES=$(git diff --name-only ${CI_MERGE_REQUEST_DIFF_BASE_SHA} ${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA} | xargs)
+    # Run pre-commit on modified files
+    - pre-commit run --files ${MODIFIED_FILES}
