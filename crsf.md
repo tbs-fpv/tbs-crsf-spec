@@ -26,6 +26,7 @@
   - [0x07 Variometer Sensor](#0x07-variometer-sensor)
   - [0x08 Battery Sensor](#0x08-battery-sensor)
   - [0x09 Barometric Altitude & Vertical Speed](#0x09-barometric-altitude--vertical-speed)
+  - [0x0A Airspeed](#0x0a-airspeed)
   - [0x0B Heartbeat](#0x0b-heartbeat)
   - [0x0F Discontinued](#0x0f-discontinued)
   - [0x10 VTX Telemetry](#0x10-vtx-telemetry)
@@ -364,6 +365,12 @@ int16_t get_vertical_speed_cm_s (int8_t vertical_speed_packed){
 ```
 
 Such constants give ±2500cm/s range and 3cm/s precision at low speeds and 70cm/s precision at speed about 25m/s;
+
+## 0x0A Airspeed
+
+```cpp
+    uint16_t speed;             // Airspeed in 0.1 * km/h (hectometers/h)
+```
 
 ## 0x0B Heartbeat
 
