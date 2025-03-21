@@ -41,6 +41,8 @@
   - [0x21 Flight Mode](#0x21-flight-mode)
   - [0x22 ESP_NOW Messages](#0x22-esp_now-messages)
   - [0x27 Reserved](#0x27-reserved)
+  - [0x2F RPM](#0x2f-rpm)
+  - [0x30 TEMP](#0x30-temp)
 - [Extended Frame Types](#extended-frame-types)
   - [0x28 Parameter Ping Devices](#0x28-parameter-ping-devices)
   - [0x29 Parameter Device Information](#0x29-parameter-device-information)
@@ -529,6 +531,24 @@ same as 0x16, but same conversion style as 0x17
 ```
 
 ## 0x27 Reserved
+
+## 0x2F RPM
+
+Frame type used to transmit RPM (revolutions per minute) telemetry data from the craft to the transmitter. This frame can be used to report motor or propeller RPM for monitoring performance or diagnostics.
+
+```cpp
+    uint8_t     rpm_source_id;  // Identifies the source of the RPM data (e.g., 0 = Motor 1, 1 = Motor 2, etc.)
+    int24_t    rpm_value;      // RPM with positive and negative values (e.g., motor running in forward or reverse)
+```
+
+## 0x30 TEMP
+
+Frame type used to transmit temperature telemetry data from the vehicle to the transmitter. This frame can be used to report temperature readings from various sources on the vehicle, such as motors, ESCs, or the environment.
+
+```cpp
+    uint8_t     temp_source_id;     // Identifies the source of the temperature data (e.g., 0 = Motor 1, 1 = ESC, 2 = Ambient, etc.)
+    int16_t     temperature;        // Temperature in tenths of a degree Celsius (e.g., 250 = 25.0°C, -50 = -5.0°C)
+```
 
 # Extended Frame Types
 
