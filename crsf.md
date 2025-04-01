@@ -309,12 +309,12 @@ These frame allows sending altitudes and vertical speed in a bit-efficient way. 
 ```cpp
     uint16_t altitude_qfe_packed;   // Altitude above start (calibration) point
                                     // See description below.
-    int8_t   vertical_speed_packed; // vertical speed. See description below.
-    uint16_t altitude_qne_packed;   // Altitude from barometer for normal pressure (101300 Pa).
+    int8_t   vertical_speed_packed; // (optional) vertical speed. See description below.
+    uint16_t altitude_qne_packed;   // (optional) Altitude from barometer for normal pressure (101300 Pa).
                                     // See description below.
 ```
 
-Altitude QFE (relative to the start) is calculated by the flight controller, usually using a barometer and GPS according to its own algorithms. The zero point is altitude at which the ARM is produced. Calc depends on MSB (bit 15):
+Altitude QFE (relative to the start) is calculated by the flight controller, usually using a barometer or(and) GPS according to its own algorithms. The zero point is altitude at which the ARM is produced. Calc depends on MSB (bit 15):
 
 - MSB = 0: altitude is in decimeters - 10000dm offset (so 0 represents -1000m; 10000 represents 0m (starting altitude); 0x7fff represents 2276.7m);
 - MSB = 1: altitude is in meters. Without any offset.
