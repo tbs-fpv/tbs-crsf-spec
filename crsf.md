@@ -527,10 +527,10 @@ same as 0x16, but same conversion style as 0x17
 ```
 ARM status use 2 lower bits. Other 6 bits is reserved.
 
- - 0xRRRRRR00 - Disarmed, not ready for ARM (waiting GPS, etc), ARM signal is not present;
- - 0xRRRRRR01 - Disarmed, ready for ARM, ARM signal is not present;
- - 0xRRRRRR10 - Disarmed, not ready for ARM, but ARM signal is present;
- - 0xRRRRRR11 - Armed (and ARM signal is present)
+ - 0bRRRRRR00 - Disarmed, not ready for ARM (waiting GPS, etc), ARM signal is not present;
+ - 0bRRRRRR01 - Disarmed, ready for ARM, ARM signal is not present;
+ - 0bRRRRRR10 - Disarmed, not ready for ARM, but ARM signal is present;
+ - 0bRRRRRR11 - Armed (and ARM signal is present)
 
 
 ## 0x22 ESP_NOW Messages
