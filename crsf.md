@@ -25,7 +25,7 @@
   - [0x06 GPS Extended](#0x06-gps-extended)
   - [0x07 Variometer Sensor](#0x07-variometer-sensor)
   - [0x08 Battery Sensor](#0x08-battery-sensor)
-  - [0x09 Barometric Altitude & Vertical Speed](#0x09-barometric-altitude--vertical-speed)
+  - [0x09 Altitudes & Vertical Speed](#0x09-altitudes--vertical-speed)
   - [0x0A Airspeed](#0x0a-airspeed)
   - [0x0B Heartbeat](#0x0b-heartbeat)
   - [0x0F Discontinued](#0x0f-discontinued)
@@ -252,7 +252,7 @@ Frames with type lower than 0x27 are broadcast frames and have simple (short) he
     int32_t longitude;      // degree / 10`000`000
     uint16_t groundspeed;   // km/h / 100
     uint16_t heading;       // degree / 100
-    uint16_t altitude;      // meter - 1000m offset
+    uint16_t altitude;      // meter - 1000m offset, attitude relative to sea level (QNH)
     uint8_t satellites;     // # of sats in view
 ```
 
@@ -302,17 +302,19 @@ This frame is needed for synchronization with the ublox time pulse. The maximum 
     uint8_t remaining;      // Battery remaining (percent)
 ```
 
-## 0x09 Barometric Altitude & Vertical Speed
+## 0x09 Altitudes & Vertical Speed
 
-These frame allows sending altitude and vertical speed in a bit-efficient way. It allows in 3 bytes combine dm-precision altitude with 32-km range and 3cm/s-precision vertical speed with 25m/s range.
+These frame allows sending altitudes and vertical speed in a bit-efficient way. It allows in 5 bytes combine two dm-precision altitude with 32-km range and 3cm/s-precision vertical speed with 25m/s range. 
 
 ```cpp
-    uint16_t altitude_packed;       // Altitude above start (calibration) point
+    uint16_t altitude_qfe_packed;   // Altitude above start (calibration) point
                                     // See description below.
     int8_t   vertical_speed_packed; // vertical speed. See description below.
+    uint16_t altitude_qne_packed;   // Altitude from barometer for normal pressure (101300 Pa).
+                                    // See description below.
 ```
 
-Altitude value depends on MSB (bit 15):
+Altitude QFE (relative to the start) is calculated by the flight controller, usually using a barometer and GPS according to its own algorithms. The zero point is altitude at which the ARM is produced. Calc depends on MSB (bit 15):
 
 - MSB = 0: altitude is in decimeters - 10000dm offset (so 0 represents -1000m; 10000 represents 0m (starting altitude); 0x7fff represents 2276.7m);
 - MSB = 1: altitude is in meters. Without any offset.
@@ -365,6 +367,10 @@ int16_t get_vertical_speed_cm_s (int8_t vertical_speed_packed){
 ```
 
 Such constants give ±2500cm/s range and 3cm/s precision at low speeds and 70cm/s precision at speed about 25m/s;
+
+
+Altitude QNE (normal pressure elevation), calculated solely by barometer, based on normal pressure (101300 Pa for 0 meter).
+Packed similarly Altitude QFE. Similar functions must be used for decoding.
 
 ## 0x0A Airspeed
 
