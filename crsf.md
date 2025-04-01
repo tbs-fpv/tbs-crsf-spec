@@ -379,7 +379,7 @@ Frame type used to transmit RPM (revolutions per minute) telemetry data from the
 
 ```cpp
     uint8_t    rpm_source_id;  // Identifies the source of the RPM data (e.g., 0 = Motor 1, 1 = Motor 2, etc.)
-    int24_t    rpm_value;      // RPM with positive and negative values (e.g., motor running in forward or reverse)
+    int24_t    rpm_value[];      // 1 - 19 RPM values with negative ones representing the motor spinning in reverse
 ```
 
 ## 0x0D TEMP
@@ -387,8 +387,8 @@ Frame type used to transmit RPM (revolutions per minute) telemetry data from the
 Frame type used to transmit temperature telemetry data from the vehicle to the transmitter. This frame can be used to report temperature readings from various sources on the vehicle, such as motors, ESCs, or the environment.
 
 ```cpp
-    uint8_t     temp_source_id;     // Identifies the source of the temperature data (e.g., 0 = Motor 1, 1 = ESC, 2 = Ambient, etc.)
-    int16_t     temperature;        // Temperature in tenths of a degree Celsius (e.g., 250 = 25.0°C, -50 = -5.0°C)
+    uint8_t     temp_source_id;     // Identifies the source of the temperature data (e.g., 0 = FC including all ESCs, 1 = Ambient, etc.)
+    int16_t     temperature[];        // up to 20 temperature values in deci-degree (tenths of a degree) Celsius (e.g., 250 = 25.0°C, -50 = -5.0°C)
 ```
 
 ## 0x0F Discontinued
