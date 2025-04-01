@@ -541,9 +541,11 @@ same as 0x16, but same conversion style as 0x17
 Frames are designed to display various text messages: information, warnings, problems. For example, it may be a 
 message about the reason for the ARM failure, change NavPoint, etc.
 
-The first byte of a text message is special data: criticality and message counter. Next comes the ASCII text. Ends each message will be a zero byte.
+The first byte of a text message is special data: criticality and message counter. Next comes the ASCII text. 
+Ends each message will be a zero byte.
 
-One frame can contain several text messages, the total length of which should not exceed the maximum available for the payload of a simple CRSF frame.
+One frame can contain several text messages, the total length of which should not exceed the maximum available 
+for the payload of a simple CRSF frame.
 
 Description of first byte:
  - 0b00NNNNNN - Log message
@@ -551,7 +553,8 @@ Description of first byte:
  - 0b10NNNNNN - Warning message
  - 0b11NNNNNN - Alert message
 
- - 0bTTxxxxxx - where xxxxxx - is counter from 0 to 63. After 63 must be send 0. If the number is skipped, control handset can write info about count skipped messages
+ - 0bTTxxxxxx - where xxxxxx - is counter from 0 to 63. After 63 must be send 0. If the number is skipped, control 
+   handset can write info about count skipped messages
 
 
 ```cpp
