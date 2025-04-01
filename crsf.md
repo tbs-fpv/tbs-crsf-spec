@@ -41,6 +41,7 @@
   - [0x1F MAVLink FC](#0x1f-mavlink-fc)
   - [0x21 Flight Mode](#0x21-flight-mode)
   - [0x22 ESP_NOW Messages](#0x22-esp_now-messages)
+  - [0x23 Text messages](#0x23-text-messages)
   - [0x27 Reserved](#0x27-reserved)
 - [Extended Frame Types](#extended-frame-types)
   - [0x28 Parameter Ping Devices](#0x28-parameter-ping-devices)
@@ -534,6 +535,54 @@ same as 0x16, but same conversion style as 0x17
     char    VAL4[15];       // 15 characters for the lap time current/split
     char    FREE_TEXT[20];  // Free text of 20 character at the bottom of the screen
 ```
+
+## 0x23 Text Messages
+
+Frames are designed to display various text messages: information, warnings, problems. For example, it may be a 
+message about the reason for the ARM failure, change NavPoint, etc.
+
+The first byte of a text message is special data: criticality and message counter. Next comes the ASCII text. Ends each message will be a zero byte.
+
+One frame can contain several text messages, the total length of which should not exceed the maximum available for the payload of a simple CRSF frame.
+
+Description of first byte:
+ - 0b00NNNNNN - Log message
+ - 0b01NNNNNN - Info message
+ - 0b10NNNNNN - Warning message
+ - 0b11NNNNNN - Alert message
+
+ - 0bTTxxxxxx - where xxxxxx - is counter from 0 to 63. After 63 must be send 0. If the number is skipped, control handset can write info about count skipped messages
+
+
+```cpp
+    #define MESSAGE_LEVEL_LOG       0
+    #define MESSAGE_LEVEL_INFO      1
+    #define MESSAGE_LEVEL_WARNING   2
+    #define MESSAGE_LEVEL_ALERT     3
+
+    uint8_t payload[] = {
+      // First message in payload
+      0x40,     // Start byte = MESSAGE_LEVEL (1, MESSAGE_LEVEL_INFO) << 6  + message_counter (0)
+      0x49,     // 'I'
+      0x4D,     // 'M'
+      0x55,     // 'U'
+      0x20,     // ' '
+      0x69,     // 'i'
+      0x6E,     // 'n'
+      0x69,     // 'i'
+      0x74,     // 't'
+      0x00,     // 0x00 - zero byte
+
+      // Next message in same payload
+      0xC1,     // Start byte = MESSAGE_LEVEL (3, MESSAGE_LEVEL_ALERT) << 6 + message_counter (1)
+      0x46,     // 'F'
+      0x53,     // 'S'
+      0x21,     // '!'
+      0x00      // 0x00 - zero byte
+    }
+```
+
+Next text messages frame will have first counter value = 2
 
 ## 0x27 Reserved
 
