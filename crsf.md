@@ -787,18 +787,18 @@ enum cmd_status
 ```mermaid
 sequenceDiagram
 
-    Host->>Device: Read parameter
-    Device->>Host: Send: COMMAND, Name = Bind, Status = READY, Info = NULL
-    Host->>Device: Write: Status = START
-    Device->>Host: Send Parameter: COMMAND, Name = Bind, Status = PROGRESS, Info = Binding
+    Host->>Device: Read parameter (0x2C)
+    Device->>Host: Send: COMMAND, Name = Bind, Status = READY, Info = NULL (0x2B)
+    Host->>Device: Write: Status = START (0x2D)
+    Device->>Host: Send Parameter: COMMAND, Name = Bind, Status = PROGRESS, Info = Binding (0x2B)
 
-    Host->>Device: (optional) Status = POLL
+    Host->>Device: (optional) Status = POLL (0x2D)
     note over Host: it’s a must to send POLL from host if we wanna get the <br/>latest parameter info.For example: while getting parameter “bind”<br/>from TX (0xEE) is a must,otherwise we don’t know the RX firmware<br/>updating info
-    Host->>Device: (optional) Status = POLL
-    Host->>Device: (optional) Status = POLL
+    Host->>Device: (optional) Status = POLL (0x2D)
+    Host->>Device: (optional) Status = POLL (0x2D)
 
     note over Device: Device completed bind process
-    Device->>Host: Send Parameter: COMMAND, Name = Bind, Status = READY, Info = OK
+    Device->>Host: Send Parameter: COMMAND, Name = Bind, Status = READY, Info = OK (0x2B)
 ```
 
 ## 0x2C Parameter Settings (Read)
@@ -812,7 +812,7 @@ Request a specific parameter. This command is for re-request a parameter/chunk t
 
 ## 0x2D Parameter Value (Write)
 
-This command is for override a parameter. The destination node will answer with a Parameter value frame sent to the origin node address for verification.
+This command is for override a parameter. The destination node will answer with a [0x2B Parameter Settings (Entry)](#0x2b-parameter-settings-entry) frame sent to the origin node address for verification.
 
 ```cpp
     uint8_t Parameter_number;
