@@ -30,6 +30,7 @@
   - [0x0B Heartbeat](#0x0b-heartbeat)
   - [0x0C RPM](#0x0C-rpm)
   - [0x0D TEMP](#0x0D-temp)
+  - [0x0E Cells Sensor](#0x0E-cells-sensor)
   - [0x0F Discontinued](#0x0f-discontinued)
   - [0x10 VTX Telemetry](#0x10-vtx-telemetry)
   - [0x14 Link Statistics](#0x14-link-statistics)
@@ -394,8 +395,17 @@ Frame type used to transmit RPM (revolutions per minute) telemetry data from the
 Frame type used to transmit temperature telemetry data from the vehicle to the transmitter. This frame can be used to report temperature readings from various sources on the vehicle, such as motors, ESCs, or the environment.
 
 ```cpp
-    uint8_t     temp_source_id;     // Identifies the source of the temperature data (e.g., 0 = FC including all ESCs, 1 = Ambient, etc.)
+    uint8_t     temp_source_id;       // Identifies the source of the temperature data (e.g., 0 = FC including all ESCs, 1 = Ambient, etc.)
     int16_t     temperature[];        // up to 20 temperature values in deci-degree (tenths of a degree) Celsius (e.g., 250 = 25.0°C, -50 = -5.0°C)
+```
+
+## 0x0E Cells Sensor
+
+Frame type sends each cell's voltage from the craft's main battery to the transmitter. Sensors handle up to 8S batteries, with multiple sensors for multi-battery crafts.
+
+```cpp
+    uint8_t    Cell_Sensor_source_id;    // Identifies the source of the Main_battery data (e.g., 0 = battery 1, 1 = battery 2, etc.)
+    int24_t    Cell_Sensor_value[];      // 1 - 8 individual cell values for up to 8 cells
 ```
 
 ## 0x0F Discontinued
