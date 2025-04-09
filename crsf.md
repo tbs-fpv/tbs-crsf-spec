@@ -405,7 +405,7 @@ Frame type sends each cell's voltage from the craft's main battery to the transm
 
 ```cpp
     uint8_t    Cell_Sensor_source_id;    // Identifies the source of the Main_battery data (e.g., 0 = battery 1, 1 = battery 2, etc.)
-    int24_t    Cell_Sensor_value[];      // 1 - 8 individual cell values for up to 8 cells
+    int24_t    Cell_Sensor_value[];      // 1 - 8 individual cell values for up to 8 cells in a resolution of a hundrenth of a volt (e.g. 3.85v = 385)
 ```
 
 ## 0x0F Discontinued
