@@ -401,11 +401,11 @@ Frame type used to transmit temperature telemetry data from the vehicle to the t
 
 ## 0x0E Cells Sensor
 
-Frame type sends each cell's voltage from the craft's main battery to the transmitter. Sensors handle up to 8S batteries, with multiple sensors for multi-battery crafts.
+Frame type sends each cell's voltage from the craft's main battery to the transmitter. Sensors handle up to 29s batteries, with multiple sensors for multi-battery crafts.
 
 ```cpp
     uint8_t    Cell_Sensor_source_id;    // Identifies the source of the Main_battery data (e.g., 0 = battery 1, 1 = battery 2, etc.)
-    int24_t    Cell_Sensor_value[];      // 1 - 8 individual cell values for up to 8 cells in a resolution of a hundrenth of a volt (e.g. 3.85v = 385)
+    int16_t    Cell_Sensor_value[];      // up to 29 cell values in a resolution of a thousandth of a volt (e.g. 3.850v = 3850)
 ```
 
 ## 0x0F Discontinued
