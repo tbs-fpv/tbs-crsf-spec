@@ -619,6 +619,15 @@ This is how a device (node address) can share a parameter to another device. See
 > [!NOTE]
 > If Data_type_payload_chunk \<= 56 it can be sent in 1 frame, otherwise payload will be split into 2 or more frames.
 
+> [!NOTE]
+>  0x2B ```Parameter_number``` 0 is special one. 
+>  It defines device's root folder structure so 0x2B payload ```data_type``` always has to be **0x0B FOLDER**
+>
+>  Suggested **0x0B FOLDER** payload ```Name``` is "ROOT" (0x52 0x4F 0x4F 0x54 0x00).
+>
+>  If DEVICE is not responding for ```Parameter_number``` = 0 request, it means its firmware CRSF implementation does not support root folder structure. In this case HOST should start to request parameters from number 1 up to the last one that is transmitted in **0x29 Parameter Device Information** as ```Parameters_total```   
+
+
 ```cpp
     uint8_t         Sync_byte;                  // 0xc8
     uint8_t         Frame_length;
@@ -633,6 +642,7 @@ This is how a device (node address) can share a parameter to another device. See
     uint8_t         CRC_8;                      // Frame CRC (see CRC topic)
 ```
 
+
 ### Parameter Type Definitions & Hidden Bit
 
 Parameter type is 8bit wide. The bit 7 indicates if the parameter is hidden (1 = hidden / 0 = visible). This gives the ability to dynamically show or hide parameters depending on other parameters. Bit 6-0 holds the type of parameter information (enum data_type).
@@ -640,19 +650,19 @@ Parameter type is 8bit wide. The bit 7 indicates if the parameter is hidden (1 =
 ```cpp
 enum data_type
 {
-    UINT8           = 0,  // deprecated
-    INT8            = 1,  // deprecated
-    UINT16          = 2,  // deprecated
-    INT16           = 3,  // deprecated
-    UINT32          = 4,  // deprecated
-    INT32           = 5,  // deprecated
-    FLOAT           = 8,
-    TEXT_SELECTION  = 9,
-    STRING          = 10,
-    FOLDER          = 11,
-    INFO            = 12,
-    COMMAND         = 13,
-    OUT_OF_RANGE    = 127
+    UINT8           = 0,  // 0x00 // deprecated
+    INT8            = 1,  // 0x01 // deprecated
+    UINT16          = 2,  // 0x02 // deprecated
+    INT16           = 3,  // 0x03 // deprecated
+    UINT32          = 4,  // 0x04 // deprecated
+    INT32           = 5,  // 0x05 // deprecated
+    FLOAT           = 8,  // 0x08
+    TEXT_SELECTION  = 9,  // 0x09
+    STRING          = 10, // 0x0A
+    FOLDER          = 11, // 0x0B
+    INFO            = 12, // 0x0C
+    COMMAND         = 13, // 0x0D
+    OUT_OF_RANGE    = 127 //
 }
 ```
 
