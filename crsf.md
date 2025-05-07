@@ -630,13 +630,12 @@ This is how a device (node address) can share a parameter to another device. See
 > If Data_type_payload_chunk \<= 56 it can be sent in 1 frame, otherwise payload will be split into 2 or more frames.
 
 > [!NOTE]
->  0x2B ```Parameter_number``` 0 is special one. 
->  It defines device's root folder structure so 0x2B payload ```data_type``` always has to be **0x0B FOLDER**
+> 0x2B `Parameter_number` 0 is special one.
+> It defines device's root folder structure so 0x2B payload `data_type` always has to be **0x0B FOLDER**
 >
->  Suggested **0x0B FOLDER** payload ```Name``` is "ROOT" (0x52 0x4F 0x4F 0x54 0x00).
+> Suggested **0x0B FOLDER** payload `Name` is "ROOT" (0x52 0x4F 0x4F 0x54 0x00).
 >
->  If DEVICE is not responding for ```Parameter_number``` = 0 request, it means its firmware CRSF implementation does not support root folder structure. In this case HOST should start to request parameters from number 1 up to the last one that is transmitted in **0x29 Parameter Device Information** as ```Parameters_total```   
-
+> If DEVICE is not responding for `Parameter_number` = 0 request, it means its firmware CRSF implementation does not support root folder structure. In this case HOST should start to request parameters from number 1 up to the last one that is transmitted in **0x29 Parameter Device Information** as `Parameters_total`
 
 ```cpp
     uint8_t         Sync_byte;                  // 0xc8
@@ -651,7 +650,6 @@ This is how a device (node address) can share a parameter to another device. See
     }
     uint8_t         CRC_8;                      // Frame CRC (see CRC topic)
 ```
-
 
 ### Parameter Type Definitions & Hidden Bit
 
