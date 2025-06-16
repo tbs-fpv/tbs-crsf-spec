@@ -30,7 +30,7 @@
   - [0x0B Heartbeat](#0x0b-heartbeat)
   - [0x0C RPM](#0x0C-rpm)
   - [0x0D TEMP](#0x0D-temp)
-  - [0x0E Cells Sensor](#0x0E-cells-sensor)
+  - [0x0E Voltages](#0x0E-Voltages-(or-"Voltage-Group"))
   - [0x0F Discontinued](#0x0f-discontinued)
   - [0x10 VTX Telemetry](#0x10-vtx-telemetry)
   - [0x14 Link Statistics](#0x14-link-statistics)
