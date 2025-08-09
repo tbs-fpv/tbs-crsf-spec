@@ -44,6 +44,7 @@
   - [0x1F MAVLink FC](#0x1f-mavlink-fc)
   - [0x21 Flight Mode](#0x21-flight-mode)
   - [0x22 ESP_NOW Messages](#0x22-esp_now-messages)
+  - [0x26 RC Extended Channels Packed Payload](#0x26-rc-extended-channels-packed-payload)
   - [0x27 Reserved](#0x27-reserved)
 - [Extended Frame Types](#extended-frame-types)
   - [0x28 Parameter Ping Devices](#0x28-parameter-ping-devices)
@@ -567,6 +568,37 @@ same as 0x16, but same conversion style as 0x17
     char    VAL3[15];       // 15 characters for the lap time current/split
     char    VAL4[15];       // 15 characters for the lap time current/split
     char    FREE_TEXT[20];  // Free text of 20 character at the bottom of the screen
+```
+
+## 0x26 RC Extended Channels Packed Payload
+
+16 channels packed into 22 bytes, as frame type 0x16, but for transporting channels 17 to 32. The RC Extended Channels Packed Payload may be transported with another frame rate, as the 0x16 RC Channels Packed Payload. In case of a Failsafe, this frame will no longer be sent (when the failsafe type is set to "cut"). It is recommended to wait for 1 second before starting the FC failsafe routine for the extended channels.
+
+```cpp
+#define TICKS_TO_US(x)  ((x - 992) * 5 / 8 + 1500)
+#define US_TO_TICKS(x)  ((x - 1500) * 8 / 5 + 992)
+
+// Center (1500µs) = 992
+
+struct
+{
+    int channel_17: 11;
+    int channel_18: 11;
+    int channel_19: 11;
+    int channel_20: 11;
+    int channel_21: 11;
+    int channel_22: 11;
+    int channel_23: 11;
+    int channel_24: 11;
+    int channel_25: 11;
+    int channel_26: 11;
+    int channel_27: 11;
+    int channel_28: 11;
+    int channel_29: 11;
+    int channel_30: 11;
+    int channel_31: 11;
+    int channel_32: 11;
+};
 ```
 
 ## 0x27 Reserved
