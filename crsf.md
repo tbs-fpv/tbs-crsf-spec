@@ -832,21 +832,25 @@ Request a specific parameter. This command is for re-request a parameter/chunk t
     uint8_t Parameter_chunk_number; // Chunk number to request, starts with 0
 ```
 
-## 0x2D Parameter Value (Write)
+### 0x2D Parameter value (write)
 
-This command is for override a parameter. The destination node will answer with a [0x2B Parameter Settings (Entry)](#0x2b-parameter-settings-entry) frame sent to the origin node address for verification.
+This command is used to write a new value to a parameter. The host sends a `0x2D` frame containing the parameter number and the new data payload. The destination node **must** answer to confirm the write; however, the response format depends on the parameter's type.
 
-```cpp
-    uint8_t Parameter_number;
-            Data;               // size depending on data type
-```
+| Type    | Name               |
+| ------- | ------------------ |
+| uint8_t | Parameter_number   |
+|         | Data               | // New value payload; size depends on data type
+
+**Response Behavior:**
+
+- **For `FLOAT`, `TEXT_SELECTION`, and `STRING` types:**
+  The device confirms the write by responding with a **`Parameter value (0x2D)`** frame. This response contains the same `Parameter_number` and the new `Data` payload that was just accepted. This serves as verification that the new value has been set.
+
+- **For `COMMAND` type:**
+  The response to a `COMMAND` write is a **`Parameter settings (entry) (0x2B)`** frame. This is because a command is stateful. The response provides the full definition of the command parameter, updated with its new execution `Status` (e.g., `PROGRESS`, `CONFIRMATION_NEEDED`, `READY`) and any relevant `Info` text. This allows the host to display feedback to the user. See the `COMMAND` type definition for more details on the state lifecycle.
 
 > [!NOTE]
-> Size depending on [data type](#parameter-type-definitions-and-hidden-bit), otherwise this entry
-> is not sent, f.e.:
->
-> - for TEXT_SELECTION - size 1;
-> - for FLOAT - size 4.
+> The key distinction is the response frame type. For simple value changes, the response is a value-only verification frame (`0x2D`). For commands, the response is a full parameter definition frame (`0x2B`) to provide detailed state feedback. The `Data` payload size for `TEXT_SELECTION` is 1 byte (the new index) and for `FLOAT` is 4 bytes (the new int32_t value).
 
 ## 0x32 Direct Commands
 
