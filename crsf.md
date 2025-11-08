@@ -361,7 +361,7 @@ int8_t  get_vertical_speed_packed (int16 vertical_speed_cm_s){
 }
 
 int16_t get_vertical_speed_cm_s (int8_t vertical_speed_packed){
-    return exp(abs(vertical_speed_packed * Kr) - 1) * Kl
+    return (exp(abs(vertical_speed_packed * Kr)) - 1) * Kl
                            * sign(vertical_speed_packed);
 }
 
