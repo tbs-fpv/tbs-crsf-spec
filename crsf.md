@@ -33,6 +33,9 @@
   - [0x0E Voltages](#0x0E-voltages-or-voltage-group)
   - [0x0F Discontinued](#0x0f-discontinued)
   - [0x10 VTX Telemetry](#0x10-vtx-telemetry)
+  - [0x11 Barometer](#0x11-barometer)
+  - [0x12 Magnetometer](#0x12-magnetometer)
+  - [0x13 Accel/Gyro](#0x13-accel-gyro)
   - [0x14 Link Statistics](#0x14-link-statistics)
   - [0x16 RC Channels Packed Payload](#0x16-rc-channels-packed-payload)
   - [0x17 Subset RC Channels Packed](#0x17-subset-rc-channels-packed)
@@ -423,6 +426,43 @@ Interpretation of the type of voltages is dependent on the source_id selected fo
     uint8_t     pit_mode:1;         // 0=Off, 1=On
     uint8_t     pitmode_control:2;  // 0=Off, 1=On, 2=Switch, 3=Failsafe
     uint8_t     pitmode_switch:4;   // 0=Ch5, 1=Ch5 Inv, … , 15=Ch12 Inv
+```
+
+## 0x11 Barometer
+
+```cpp
+  int32_t     pressure_pa;        // Pascals
+  int32_t     baro_temp;          // centidegrees
+```
+
+## 0x12 Magnetometer
+
+```cpp
+  int16_t     field_x;            // milligauss * 3
+  int16_t     field_y;            // milligauss * 3
+  int16_t     field_z;            // milligauss * 3
+```
+
+## 0x13 Accel Gyro
+
+Raw accel and gyro data in NEU bodyframe, samples are raw data averaged over the sample interval
+
+Accel: +ve X = foward
+       +ve Y = right
+       +ve Z = up
+Gyro:  +ve X = roll left
+       +ve Y = pitch up
+       +ve Z = yaw clockwise
+
+```cpp
+    uint32_t sample_time;       // Timestamp of the sample in us
+    int16_t gyro_x;             // LSB = INT16_MAX/2000 DPS
+    int16_t gyro_y;             // LSB = INT16_MAX/2000 DPS
+    int16_t gyro_z;             // LSB = INT16_MAX/2000 DPS
+    int16_t acc_x;              // LSB = INT16_MAX/16 G
+    int16_t acc_y;              // LSB = INT16_MAX/16 G
+    int16_t acc_z;              // LSB = INT16_MAX/16 G
+    int16_t gyro_temp;          // centidegrees
 ```
 
 ## 0x14 Link Statistics
