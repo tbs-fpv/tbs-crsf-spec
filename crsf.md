@@ -91,6 +91,7 @@
   - [0x7F ArduPilot Legacy Reserved](#0x7f-ardupilot-legacy-reserved)
   - [0x80 ArduPilot Reserved Passthrough Frame](#0x80-ardupilot-reserved-passthrough-frame)
   - [0x81, 0x82 mLRS Reserved](#0x81-0x82-mlrs-reserved)
+  - [0x88 Rotorflight Telemetry Envelope](#0x88-rotorflight-telemetry-envelope)
   - [0xAA CRSF MAVLink Envelope](#0xaa-crsf-mavlink-envelope)
   - [0xAC CRSF MAVLink System Status Sensor](#0xac-crsf-mavlink-system-status-sensor)
 - [End of Document](#end-of-document)
@@ -1198,6 +1199,12 @@ flowchart LR
 The Frame Length and CRC are as per the CRSF specification in the above. The mBridge protocol is relatively complicated, as it serves mLRS for various additional purposes besides communication with the Lua configuration script.
 
 mLRS project home: https://github.com/olliw42/mLRS/
+
+## 0x88 Rotorflight Telemetry Envelope
+
+The 0x88 frame carries Rotorflight telemetry data sent from the Flight Controller to the Transmitter. Its exact format depends on the Rotorflight version. The frame encoder in the flight controller and the Lua decoder script in the transmitter are released together by the Rotorflight project, allowing each model on the Transmitter to use a different protocol version.
+
+Rotorflight project: https://github.com/rotorflight/
 
 ## 0xAA CRSF MAVLink Envelope
 
