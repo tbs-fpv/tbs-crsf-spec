@@ -407,6 +407,7 @@ Frame type used to transmit temperature telemetry data from the vehicle to the t
 Used to transmit voltage telemetry from the craft to the transmitter. Can be used to report battery cell voltages, or a group of associated voltages from a single source.
 
 Interpretation of the type of voltages is dependent on the source_id selected for reporting:
+
 - 0..127: Interpret as cell voltages of a single battery, up to 29S. Multiple batteries may be reported using multiple 0x0E frames with different source_ids. e.g. 0 = battery 1 cells, 1 = battery 2 cells, etc,
 - 128..255: Interpret as general voltages measured from a single source. For example, an ESC might report incoming voltage, BEC output voltage, and MCU voltage as a single source_id and use additional source_ids for reporting multiple ESCs. e.g. 128 = ESC 1, 129 = ESC 2, etc
 
@@ -1043,6 +1044,8 @@ unsigned char command_crc8tab[256] = {
   - uint8_t Model Number
 - 0x08 reserved
 - 0x09 reserved
+- 0x0A Enable RX telemerty
+- 0x0B Disable RX telemetry
 ```
 
 ### 0x32.0x12 Reserved
