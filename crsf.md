@@ -1221,22 +1221,22 @@ Passthrough packets come in three different flavours:
 
 ## 0x81, 0x82 mLRS Reserved
 
-The 0x80 and 0x81 broadcast frames establish the communication of mLRS TX modules with mLRS Configuration Lua scripts running on e.g. EdgeTx and OpenTx remote controllers. They encapsulate mLRS 'mBridge' protocol messages in CRSF frames. The protocol enables the setting of parameters and other functionality, but especially also communicates meta data which are needed for mLRS' parameter model, providing various information to the user, version control, and more features specific to the mLRS link system.
+The 0x81 and 0x82 broadcast frames establish the communication of mLRS TX modules with mLRS Configuration Lua scripts running on e.g. EdgeTx and OpenTx remote controllers. They encapsulate mLRS 'mBridge' protocol messages in CRSF frames. The protocol enables the setting of parameters and other functionality, but especially also communicates meta data which are needed for mLRS' parameter model, providing various information to the user, version control, and more features specific to the mLRS link system.
 
-**0x80**: Communication from Lua script/remote controller to TX module. The frame format is:
+**0x81**: Communication from Lua script/remote controller to TX module. The frame format is:
 
 ```mermaid
 flowchart LR
-    0xEE ~~~ id0[Frame Length] ~~~ 0x80 ~~~ 0x4F ~~~ 0x57 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
+    0xEE ~~~ id0[Frame Length] ~~~ 0x81 ~~~ 0x4F ~~~ 0x57 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
 ```
 
 The two bytes 0x4F, 0x57 are the sync bytes of the mBridge protocol.
 
-**0x81**: Communication from TX module to Lua script/remote controller. The frame format is:
+**0x82**: Communication from TX module to Lua script/remote controller. The frame format is:
 
 ```mermaid
 flowchart LR
-    0xEA ~~~ id0[Frame Length] ~~~ 0x81 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
+    0xEA ~~~ id0[Frame Length] ~~~ 0x82 ~~~ id1[Command Byte] ~~~ Payload ~~~ CRC
 ```
 
 The Frame Length and CRC are as per the CRSF specification in the above. The mBridge protocol is relatively complicated, as it serves mLRS for various additional purposes besides communication with the Lua configuration script.
