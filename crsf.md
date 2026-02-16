@@ -45,7 +45,7 @@
   - [0x1D Link Statistics TX](#0x1d-link-statistics-tx)
   - [0x1E Attitude](#0x1e-attitude)
   - [0x1F MAVLink FC](#0x1f-mavlink-fc)
-  - [0x21 Flight Mode](#0x21-flight-mode)
+  - [0x21 Flight Mode and ARM status](#0x21-flight-mode-and-arm-status)
   - [0x22 ESP_NOW Messages](#0x22-esp_now-messages)
   - [0x27 Reserved](#0x27-reserved)
 - [Extended Frame Types](#extended-frame-types)
@@ -595,11 +595,19 @@ same as 0x16, but same conversion style as 0x17
 - [MAV_AUTOPILOT enum](https://mavlink.io/en/messages/common.html#MAV_AUTOPILOT)
 - [MAV_TYPE enum](https://mavlink.io/en/messages/common.html#MAV_TYPE)
 
-## 0x21 Flight Mode
+## 0x21 Flight Mode and ARM status
 
 ```cpp
     char[]  Flight mode  // Null-terminated string
+    uint8   Arm status   // (optional) Bitmask of Arm status (see below)
 ```
+ARM status use 2 lower bits. Other 6 bits is reserved.
+
+ - 0bRRRRRR00 - Disarmed, not ready for ARM (waiting GPS, etc), ARM signal is not present;
+ - 0bRRRRRR01 - Disarmed, ready for ARM, ARM signal is not present;
+ - 0bRRRRRR10 - Disarmed, not ready for ARM, but ARM signal is present;
+ - 0bRRRRRR11 - Armed (and ARM signal is present)
+
 
 ## 0x22 ESP_NOW Messages
 
