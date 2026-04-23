@@ -1251,22 +1251,31 @@ Rotorflight project: https://github.com/rotorflight/
 
 ## 0xAA CRSF MAVLink Envelope
 
-- CRSF MAVLink envelope is designed to transfer MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames. Since MAVLink frames are generally much longer than CRSF frames (281 bytes for MAVLink2 vs 64 bytes for CRSF), MAVLink frames will be broken up into chunks.
-- Note that encoding / decoding correct chunk count while writing / reading MAVLink envelopes should be handled by the user to ensure data integrity.
+- CRSF MAVLink envelope transfers MAVLink protocol over CRSF routers. It supports both MAVLink2 and MAVLink1 frames. Since MAVLink frames are generally longer than CRSF frames (up to 281 bytes for MAVLink2 vs 64 bytes for CRSF), MAVLink frames may be split into chunks.
+- Chunk fields are encoded as zero-based indexes:
+  - `total_chunks` is the index of the last chunk in the MAVLink frame (not a 1-based count)
+  - `current_chunk` is the index of this chunk
+  - A single-chunk MAVLink frame is therefore encoded as `total_chunks = 0`, `current_chunk = 0`
+- The sender and receiver are responsible for chunk indexing and reassembly.
 
 ```cpp
-    uint8_t total_chunks  : 4;  // total count of chunks
-    uint8_t current_chunk : 4;  // current chunk number
+    uint8_t total_chunks  : 4;  // zero-based last chunk index
+    uint8_t current_chunk : 4;  // zero-based current chunk index
     uint8_t data_size;          // size of data (max 58)
     uint8_t data[];             // data array (58 bytes max)
 ```
+
+Example encodings:
+
+- 1 chunk total: `total_chunks = 0`, `current_chunk = 0`
+- 3 chunks total: `total_chunks = 2`, `current_chunk = 0..2`
 
 ```mermaid
 ---
 title: Resulting CRSF frame structure
 ---
 flowchart LR
-  id0["Sync byte (0xC8)"] ~~~ id1[Frame Length] ~~~ id2["Type (0xAA)"] ~~~ id3["totalChunk(bit3 - 7) :<br/> currChunk(bit0-3)"] ~~~ id4[dataSize] ~~~ id5[dataStart ...<br/> dataEnd] ~~~ id6[CRC]
+  id0["Sync byte (0xC8)"] ~~~ id1[Frame Length] ~~~ id2["Type (0xAA)"] ~~~ id3["totalChunk(bit4-7) :<br/> currChunk(bit0-3)"] ~~~ id4[dataSize] ~~~ id5[dataStart ...<br/> dataEnd] ~~~ id6[CRC]
 ```
 
 ## 0xAC CRSF MAVLink System Status Sensor
