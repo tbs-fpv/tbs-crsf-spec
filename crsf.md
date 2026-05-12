@@ -37,6 +37,7 @@
   - [0x12 Magnetometer](#0x12-magnetometer)
   - [0x13 Accel/Gyro](#0x13-accel-gyro)
   - [0x14 Link Statistics](#0x14-link-statistics)
+  - [0x15 Link Statistics Repeater](#0x15-link-statistics-repeater)
   - [0x16 RC Channels Packed Payload](#0x16-rc-channels-packed-payload)
   - [0x17 Subset RC Channels Packed](#0x17-subset-rc-channels-packed)
   - [0x18 RC Channels Packed 11-bits (Unused)](#0x18-rc-channels-packed-11-bits-unused)
@@ -243,7 +244,9 @@ uint8_t crc8(const uint8_t * ptr, uint8_t len)
 - **0xCC** Race tag
 - **0xCE** VTX
 - **0xEA** Remote Control
+- **0xEB** Repeater Receiver
 - **0xEC** R/C Receiver / Crossfire Rx
+- **0xED** Repeater Transmitter Module
 - **0xEE** R/C Transmitter Module / Crossfire Tx
 - _0xF0 reserved_
 - _0xF2 reserved_
@@ -449,12 +452,14 @@ Interpretation of the type of voltages is dependent on the source_id selected fo
 
 Raw accel and gyro data in NEU bodyframe, samples are raw data averaged over the sample interval
 
-Accel: +ve X = foward
+```text
+Accel: +ve X = forward
        +ve Y = right
        +ve Z = up
 Gyro:  +ve X = roll left
        +ve Y = pitch up
        +ve Z = yaw clockwise
+```
 
 ```cpp
     uint32_t sample_time;       // Timestamp of the sample in us
@@ -470,6 +475,24 @@ Gyro:  +ve X = roll left
 ## 0x14 Link Statistics
 
 Uplink is the connection from the ground to the UAV and downlink the opposite direction
+
+```cpp
+    uint8_t     up_rssi_ant1;       // Uplink RSSI Antenna 1 (dBm * -1)
+    uint8_t     up_rssi_ant2;       // Uplink RSSI Antenna 2 (dBm * -1)
+    uint8_t     up_link_quality;    // Uplink Package success rate / Link quality (%)
+    int8_t      up_snr;             // Uplink SNR (dB)
+    uint8_t     active_antenna;     // number of currently best antenna
+    uint8_t     rf_profile;         // enum {4fps = 0 , 50fps, 150fps}
+    uint8_t     up_rf_power;        // enum {0mW = 0, 10mW, 25mW, 100mW,
+                                    // 500mW, 1000mW, 2000mW, 250mW, 50mW}
+    uint8_t     down_rssi;          // Downlink RSSI (dBm * -1)
+    uint8_t     down_link_quality;  // Downlink Package success rate / Link quality (%)
+    int8_t      down_snr;           // Downlink SNR (dB)
+```
+
+## 0x15 Link Statistics Repeater
+
+Copy of [0x14 Link Statistics](#0x14-link-statistics) frame. Uplink is the connection from the repeater to the UAV and downlink the opposite direction (and 0x14 represents connection from the ground to the repeater).
 
 ```cpp
     uint8_t     up_rssi_ant1;       // Uplink RSSI Antenna 1 (dBm * -1)
@@ -878,10 +901,10 @@ Request a specific parameter. This command is for re-request a parameter/chunk t
 
 This command is used to write a new value to a parameter. The host sends a `0x2D` frame containing the parameter number and the new data payload. The destination node **must** answer to confirm the write; however, the response format depends on the parameter's type.
 
-| Type    | Name               |
-| ------- | ------------------ |
-| uint8_t | Parameter_number   |
-|         | Data               | // New value payload; size depends on data type
+| Type    | Name             | Notes                                        |
+| ------- | ---------------- | -------------------------------------------- |
+| uint8_t | Parameter_number |                                              |
+|         | Data             | New value payload; size depends on data type |
 
 **Response Behavior:**
 
