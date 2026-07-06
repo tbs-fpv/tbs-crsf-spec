@@ -74,6 +74,8 @@
     - [0x32.0x09 LED](#0x320x09-led)
     - [0x32.0x0A General](#0x320x0a-general)
     - [0x32.0x10 Crossfire](#0x320x10-crossfire)
+      - [0x32.0x10.0x0C Factory Reset](#0x320x100x0c-factory-reset)
+      - [0x32.0x10.0x0D Reset to Factory Firmware](#0x320x100x0d-reset-to-factory-firmware)
     - [0x32.0x12 Reserved](#0x320x12-reserved)
     - [0x32.0x13 RC Over WiFi (Game Mode)](#0x320x13-rc-over-wifi-game-mode)
     - [0x32.0x20 Flow Control Frame](#0x320x20-flow-control-frame)
@@ -1076,7 +1078,29 @@ unsigned char command_crc8tab[256] = {
 - 0x09 reserved
 - 0x0A Enable RX telemetry
 - 0x0B Disable RX telemetry
+- 0x0C Factory Reset
+- 0x0D Reset to Factory Firmware
 ```
+
+#### 0x32.0x10.0x0C Factory Reset
+
+No payload.
+
+Requests the target device to reset its configuration/NVM to factory defaults. This command is supported by TX and RX devices.
+
+This is equivalent to the `Factory Reset` option in the Agent device menu.
+
+The target device acknowledges the command with [Command ACK](#0x320xff-command-ack) before performing the reset.
+
+#### 0x32.0x10.0x0D Reset to Factory Firmware
+
+No payload.
+
+Requests the target device to reset its configuration/NVM and restore the factory/golden firmware. This command is supported by all TBS receivers and TBS Crossfire 2.0 transmitters.
+
+This is equivalent to the `Factory Firmware` option in the Agent device menu where that option is exposed.
+
+The target device acknowledges the command with [Command ACK](#0x320xff-command-ack) before performing the reset.
 
 ### 0x32.0x12 Reserved
 
