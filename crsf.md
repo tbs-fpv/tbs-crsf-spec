@@ -580,24 +580,46 @@ same as 0x16, but same conversion style as 0x17
 
 ## 0x1C Link Statistics RX
 
+Report's the transmitter's (ground side) downlink reception statistics (e.g., RSSI, which antenna)
+
 ```cpp
-    uint8_t rssi_db;        // RSSI (dBm * -1)
-    uint8_t rssi_percent;   // RSSI in percent
+    uint8_t rssi_db;        // Antenna 1 RSSI (dBm * -1)
+    uint8_t rssi_percent;   // Link RSSI in percent
     uint8_t link_quality;   // Package success rate / Link quality (%)
     int8_t  snr;            // SNR (dB)
-    uint8_t rf_power_db;    // rf power in dBm
+    uint8_t rf_power_db;    // Ground transmitter RF power in dBm
+    uint8_t rssi_ant2_db;   // Antenna 2 RSSI (dBm * -1), 0 if absent or disabled
+    uint8_t active_antenna; // Best receive antenna: 0 = antenna 1, 1 = antenna 2
 ```
+
+> [!NOTE]
+> The last two fields `rssi_ant2_db`/`active_antenna` extend the original 5-byte
+> payload to 7 bytes. Therefore, readers must also support a this frame with
+> a 5-byte payload (where `rssi_ant2_db`/`active_antenna` are unavailable).
+
+> [!NOTE]
+> In older implementations of this frame, `rssi_db` may report combined
+> receive-link RSSI.
 
 ## 0x1D Link Statistics TX
 
+Reports the receiver's (air side) uplink reception statistics (e.g., RSSI, which antenna)
+
 ```cpp
-    uint8_t rssi_db;        // RSSI (dBm * -1)
-    uint8_t rssi_percent;   // RSSI in percent
+    uint8_t rssi_db;        // Antenna 1 RSSI (dBm * -1)
+    uint8_t rssi_percent;   // Link RSSI in percent
     uint8_t link_quality;   // Package success rate / Link quality (%)
     int8_t  snr;            // SNR (dB)
-    uint8_t rf_power_db;    // rf power in dBm
+    uint8_t rf_power_db;    // Aircraft receiver RF power in dBm
     uint8_t fps;            // rf frames per second (fps / 10)
+    uint8_t rssi_ant2_db;   // Antenna 2 RSSI (dBm * -1), 0 if absent or disabled
+    uint8_t active_antenna; // Best receive antenna: 0 = antenna 1, 1 = antenna 2
 ```
+
+> [!NOTE]
+> The last two fields `rssi_ant2_db`/`active_antenna` extend the original 6-byte
+> payload to 8 bytes. Therefore, readers must also support this frame with
+> a 6-byte payload (where `rssi_ant2_db`/`active_antenna` are unavailable).
 
 ## 0x1E Attitude
 
