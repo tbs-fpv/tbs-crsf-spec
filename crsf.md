@@ -516,7 +516,14 @@ Copy of [0x14 Link Statistics](#0x14-link-statistics) frame. Uplink is the conne
 
 ## 0x16 RC Channels Packed Payload
 
-16 channels packed into 22 bytes. In case of a Failsafe, this frame will no longer be sent (when the failsafe type is set to "cut"). It is recommended to wait for 1 second before starting the FC failsafe routine.
+16 channel blocks packed into 22 bytes each. For receivers generating this message, channel data should only be sent when new channel data is available. When the failsafe type is set to "cut", Failsafe is detected by the flight controller using a timeout from the last received channels packet.
+
+The first block of 16 channels is required. Consumers should use the CRSF payload length to determine if other values are present.
+
+- Payload length 24: Only channels 1-16
+- Payload length 25: Channels 1-16 and status byte
+- Payload length 47: Channels 1-16, status byte, and channels 17-32
+
 
 ```cpp
 #define TICKS_TO_US(x)  ((x - 992) * 5 / 8 + 1500)
@@ -524,6 +531,7 @@ Copy of [0x14 Link Statistics](#0x14-link-statistics) frame. Uplink is the conne
 
 // Center (1500µs) = 992
 
+// data for channels 1-16
 struct
 {
     int channel_01: 11;
@@ -542,6 +550,33 @@ struct
     int channel_14: 11;
     int channel_15: 11;
     int channel_16: 11;
+};
+// optional status byte
+uint8_t  armingRequest:2,   // optional radio to module arming request
+                            // bit(1) bit(0) Meaning
+                            // 0      0      Arm using Switch, not armed
+                            // 0      1      Arm using Switch, armed
+                            // 1      x      Arm using CH5
+         unused:6;          // spare
+// optional data for channels 17-32
+struct
+{
+    int channel_17: 11;
+    int channel_18: 11;
+    int channel_19: 11;
+    int channel_20: 11;
+    int channel_21: 11;
+    int channel_22: 11;
+    int channel_23: 11;
+    int channel_24: 11;
+    int channel_25: 11;
+    int channel_26: 11;
+    int channel_27: 11;
+    int channel_28: 11;
+    int channel_29: 11;
+    int channel_30: 11;
+    int channel_31: 11;
+    int channel_32: 11;
 };
 ```
 
