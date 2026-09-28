@@ -263,7 +263,7 @@ Frames with type lower than 0x27 are broadcast frames and have simple (short) he
 ```cpp
     int32_t latitude;       // degree / 10`000`000
     int32_t longitude;      // degree / 10`000`000
-    uint16_t groundspeed;   // km/h / 100
+    uint16_t groundspeed;   // km/h / 10
     uint16_t heading;       // degree / 100
     uint16_t altitude;      // meter - 1000m offset
     uint8_t satellites;     // # of sats in view
