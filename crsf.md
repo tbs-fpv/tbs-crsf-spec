@@ -309,8 +309,8 @@ This frame is needed for synchronization with the ublox time pulse. The maximum 
 ## 0x08 Battery Sensor
 
 ```cpp
-    int16_t voltage;        // Voltage (LSB = 10 µV)
-    int16_t current;        // Current (LSB = 10 µA)
+    int16_t voltage;        // Voltage (LSB = 100 mV, i.e. 0.1 V)
+    int16_t current;        // Current (LSB = 100 mA, i.e. 0.1 A)
     uint24_t capacity_used; // Capacity used (mAh)
     uint8_t remaining;      // Battery remaining (percent)
     uint8_t id;             // optional: id of the sensor [0,255], if this byte is missing, an id == 0 should be assumed
