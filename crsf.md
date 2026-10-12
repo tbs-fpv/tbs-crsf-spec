@@ -1225,7 +1225,7 @@ this frame has simple (short) header. Used for debug purposes only.
 
 Firmware upgrade uses extended header frames with type `0x38`. The first payload byte is a subcommand; there is no additional [Direct Commands](#0x32-direct-commands) CRC. Multi-byte fields are big endian, as in other CRSF frames.
 
-The following describes the observed TBS Mambo controller application upgrade protocol, exercised with its stock bootloader and FreedomTX 1.40, and with EdgeTX application images. Support for other devices, bootloader updates, RF firmware updates, and other image types is not established by this profile. Unknown subcommands, image types, and status values are not defined here.
+This section defines the firmware upgrade subcommands and transfer sequence. Device-specific image types, memory layout, and checksum details are specified below for the Mambo controller application. Subcommands, image types, and status values not listed here are reserved.
 
 ### Upgrade Subcommands
 
@@ -1239,7 +1239,7 @@ The following describes the observed TBS Mambo controller application upgrade pr
 | `0x06`     | Download Finished    | Device → Host | 1                                   |
 | `0x07`     | Erase Progress       | Device → Host | 2                                   |
 
-Destination identifies the upgrade target and Origin identifies the sender. Responses reverse these addresses. The observed Mambo transfer uses device address `0xEA` and host address `0x10`. These are extended-header addresses, independent of the serial sync byte.
+Destination identifies the upgrade target and Origin identifies the sender. Responses reverse these addresses. Mambo controller application upgrades use device address `0xEA` and host address `0x10`. These are extended-header addresses, independent of the serial sync byte.
 
 #### 0x38.0x01 Firmware Header
 
@@ -1252,11 +1252,11 @@ Destination identifies the upgrade target and Origin identifies the sender. Resp
     uint32_t    Image_checksum;
 ```
 
-`Hardware_ID` identifies the target hardware. The observed Mambo controller uses `0x00041001`. The header's `Firmware_ID` is 16 bits, unlike the 32-bit field in [Device Information](#0x29-parameter-device-information); FreedomTX 1.40 uses `0x0128`. The version encoding and accepted IDs for other products are not defined here.
+`Hardware_ID` identifies the target hardware. The Mambo controller uses `0x00041001`. The header's `Firmware_ID` is 16 bits, unlike the 32-bit field in [Device Information](#0x29-parameter-device-information); FreedomTX 1.40 uses `0x0128`. The host must use the firmware ID associated with the image and target product.
 
-`Image_size` describes the exact image bytes transferred. `Image_checksum` is calculated over those bytes using the [Mambo image checksum](#mambo-image-checksum). The header contains no flash address; the device selects the destination according to its image type. The observed Mambo application image is a raw binary mapped to `0x0800C000`, below RF firmware at `0x080C0000`.
+`Image_size` describes the exact image bytes transferred. `Image_checksum` is calculated over those bytes using the [Mambo image checksum](#mambo-image-checksum). The header contains no flash address; the device selects the destination according to its image type. The Mambo application image is a raw binary mapped to `0x0800C000`, below RF firmware at `0x080C0000`.
 
-Sending this header initiates erasure. The host should identify the intended device and bootloader mode using [Device Information](#0x29-parameter-device-information) before sending it, and validate the image for that hardware and image type. The observed bootloader identifies itself as `TBS BOOTLOADER` with parameter protocol version 1. Its reported firmware field is zero in that mode and does not establish a bootloader version.
+Sending this header initiates erasure. The host should identify the intended device and bootloader mode using [Device Information](#0x29-parameter-device-information) before sending it, and validate the image for that hardware and image type. The Mambo bootloader identifies itself as `TBS BOOTLOADER` with parameter protocol version 1. Its firmware field is zero in bootloader mode.
 
 The host sends the header once per transfer. A timeout is not a reason to retransmit it automatically: doing so can restart erasure.
 
@@ -1269,9 +1269,9 @@ The host sends the header once per transfer. A timeout is not a reason to retran
     uint32_t    Image_checksum;
 ```
 
-For a data request, `Start` is an inclusive byte offset and `End` is an exclusive byte offset into the image. The device requests ranges; the host does not select them. In the observed profile, ranges are sequential, `Start` is a multiple of 48, and each range contains at most 128 chunks (6144 bytes). The host must validate `Start < End <= Image_size` before reading or sending image data.
+For a data request, `Start` is an inclusive byte offset and `End` is an exclusive byte offset into the image. The device requests ranges; the host does not select them. For Mambo controller application upgrades, ranges are sequential, `Start` is a multiple of 48, and each range contains at most 128 chunks (6144 bytes). The host must validate `Start < End <= Image_size` before reading or sending image data.
 
-`Start = 0` and `End = 0` indicate terminal checksum verification, rather than a data request. The host must have transferred all image bytes and compare the returned `Image_checksum` against the header checksum before accepting completion. Intermediate checksum values do not indicate transfer success; their semantics are not defined here.
+`Start = 0` and `End = 0` indicate terminal checksum verification, rather than a data request. The host must have transferred all image bytes and compare the returned `Image_checksum` against the header checksum before accepting completion. Intermediate checksum values must not be used to accept transfer completion.
 
 #### 0x38.0x03 Firmware Data
 
@@ -1282,9 +1282,9 @@ For a data request, `Start` is an inclusive byte offset and `End` is an exclusiv
     uint8_t[]   Data;
 ```
 
-The observed profile uses 48 image bytes per chunk, except that the last chunk of a range may be shorter. `Chunk_count = ceil((End - Start) / 48)`. Chunk `i` carries image bytes beginning at `Start + i * 48`, ending at the lesser of `Start + (i + 1) * 48` and `End`. No image padding is added. Chunk indices restart at zero for every requested range; retransmissions retain their original index and count.
+Mambo controller application upgrades use 48 image bytes per chunk, except that the last chunk of a range may be shorter. `Chunk_count = ceil((End - Start) / 48)`. Chunk `i` carries image bytes beginning at `Start + i * 48`, ending at the lesser of `Start + (i + 1) * 48` and `End`. No image padding is added. Chunk indices restart at zero for every requested range; retransmissions retain their original index and count.
 
-A full 48-byte data chunk produces a 57-byte CRSF frame, including sync, length, extended header, and CRC. The observed host uses 20 ms spacing between chunks. This is a tested pacing value for this profile, not a negotiated protocol rate.
+A full 48-byte data chunk produces a 57-byte CRSF frame, including sync, length, extended header, and CRC. Hosts should allow 20 ms between chunks when upgrading the Mambo controller application. Chunk pacing is not negotiated by these subcommands.
 
 #### 0x38.0x04 Request Range Report
 
@@ -1299,7 +1299,7 @@ The host sends this after the chunks for the current range, and again after retr
 ```cpp
     uint8_t     Subcommand;     // 0x05
     uint8_t     Received[16];   // bitmap for up to 128 chunks
-    uint8_t     Status;         // 0x00 observed; other values undefined
+    uint8_t     Status;         // 0x00: supported; other values reserved
     uint32_t    Start;
     uint32_t    End;
 ```
@@ -1314,10 +1314,10 @@ The host matches `Start` and `End` to the current requested range, retransmits m
     uint8_t     Subcommand;     // 0x06
 ```
 
-This is the final device completion indication. The host accepts it only after the terminal Ask For Bytes checksum matches and all image bytes have been transferred. Completion does not establish application startup or constitute a flash readback. Reboot is not part of the sequence defined here.
+This is the final device completion indication. The host accepts it only after the terminal Ask For Bytes checksum matches and all image bytes have been transferred. Completion confirms the download. Application startup and reboot are separate from this transfer sequence.
 
 > [!NOTE]
-> The observed Mambo bootloader emits `C8 05 38 10 EA 06 00`, whose outer CRC is invalid. A compatibility implementation may accept this exact legacy completion frame only from the expected device during the completion phase, after a valid terminal checksum response. This exception does not apply to any other upgrade frame. New implementations must generate a valid outer CRC.
+> The legacy Mambo bootloader emits `C8 05 38 10 EA 06 00`, whose outer CRC is invalid. A compatibility implementation may accept this exact legacy completion frame only from the expected device during the completion phase, after a valid terminal checksum response. This exception does not apply to any other upgrade frame. New implementations must generate a valid outer CRC.
 
 #### 0x38.0x07 Erase Progress
 
@@ -1355,11 +1355,11 @@ sequenceDiagram
     Device->>Host: Download Finished (0x38.0x06)
 ```
 
-Hosts should bound retries and waiting time. A failed or interrupted transfer can leave an incomplete application. Recovery and bootloader entry are device-specific; this profile defines neither reconnect/resume semantics nor an automatic restart of erasure.
+Hosts should bound retries and waiting time. A failed or interrupted transfer can leave an incomplete application. Recovery and bootloader entry are device-specific. After a failed transfer, the host must re-establish bootloader communication before starting a new upgrade; it must not automatically resend the header to restart erasure.
 
 ### Mambo Image Checksum
 
-The observed Mambo image checksum is a legacy 32-bit calculation using polynomial `0x04C11DB7`, reflected input bytes, initial value `0xFFFFFFFF`, reflected output, and final XOR `0xFFFFFFFF`. Its feedback condition uses **OR**, not XOR, between the top accumulator bit and the input bit. Consequently, it is not standard CRC-32 and must not be replaced with a standard CRC-32 library call. Other device profiles may use a different image checksum.
+The Mambo image checksum is a legacy 32-bit calculation using polynomial `0x04C11DB7`, reflected input bytes, initial value `0xFFFFFFFF`, reflected output, and final XOR `0xFFFFFFFF`. Its feedback condition uses **OR**, not XOR, between the top accumulator bit and the input bit. Consequently, it is not standard CRC-32 and must not be replaced with a standard CRC-32 library call. The image checksum algorithm is device-specific.
 
 The following reference defines the calculation without relying on machine endianness:
 
