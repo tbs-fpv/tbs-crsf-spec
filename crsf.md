@@ -95,8 +95,17 @@
       - [0x38.0x05 Range Report](#0x380x05-range-report)
       - [0x38.0x06 Download Finished](#0x380x06-download-finished)
       - [0x38.0x07 Erase Progress](#0x380x07-erase-progress)
+      - [0x38.0x08 File Exists](#0x380x08-file-exists)
+      - [0x38.0x09 Cancel](#0x380x09-cancel)
+      - [0x38.0x13 Indexed Firmware Data](#0x380x13-indexed-firmware-data)
+      - [0x38.0x14 Chunk Done](#0x380x14-chunk-done)
+      - [0x38.0x20 Extensions Request](#0x380x20-extensions-request)
+      - [0x38.0x21 Extensions Response](#0x380x21-extensions-response)
+    - [Entering Upgrade Mode](#entering-upgrade-mode)
     - [Upgrade Sequence](#upgrade-sequence)
+    - [Firmware File Structure](#firmware-file-structure)
     - [Mambo Image Checksum](#mambo-image-checksum)
+    - [Checksum Algorithm Selection](#checksum-algorithm-selection)
   - [0x3A - Remote Related Frames](#0x3a---remote-related-frames)
     - [0x3A.0x01 - 0x3A.0x09 - Reserved](#0x3a0x01---0x3a0x09---reserved)
     - [0x3A.0x10 Timing Correction (CRSF Shot)](#0x3a0x10-timing-correction-crsf-shot)
@@ -1087,7 +1096,10 @@ unsigned char command_crc8tab[256] = {
 ### 0x32.0x0A General
 
 ```cpp
-- 0x04 - 0x61 reserved
+- 0x04 - 0x07 reserved
+- 0x08 Reload with firmware update (see 0x38 Firmware Upgrade)
+- 0x09 Reload to bootloader (see 0x38 Firmware Upgrade)
+- 0x0A - 0x61 reserved
 - 0x70 CRSF Protocol Speed Proposal
   - uint8_t port_id
   - uint32  proposed_baudrate
@@ -1223,21 +1235,36 @@ this frame has simple (short) header. Used for debug purposes only.
 
 ## 0x38 Firmware Upgrade
 
+> [!CAUTION]
+> **DANGER: THESE FRAMES ARE NOT FOR GENERAL USE. THEY CAN PERMANENTLY BRICK YOUR DEVICE.**
+>
+> **The firmware upgrade frames and commands described in this section are intended to be used only by applications supplied by TBS, and by nothing else.** They are published solely for documentation and interoperability research. Sending them erases and rewrites device flash, and an interrupted, malformed, incomplete, or mismatched transfer can leave a device permanently unusable and unrecoverable without factory service.
+>
+> **Team BlackSheep does not support, endorse, or certify any use of these frames by software not supplied by TBS.** TBS provides this information "as is", without warranty of any kind, and may change or remove any behavior described here at any time and without notice. **TBS will not be liable, to the maximum extent permitted by law, for any bricked, damaged, or otherwise impaired device, for loss of data or warranty, or for any other damage or loss resulting from the use of this section by any application not supplied by TBS.** Anyone who implements this protocol does so entirely at their own risk and responsibility.
+
 Firmware upgrade uses extended header frames with type `0x38`. The first payload byte is a subcommand; there is no additional [Direct Commands](#0x32-direct-commands) CRC. Multi-byte fields are big endian, as in other CRSF frames.
 
 This section defines the firmware upgrade subcommands and transfer sequence. Device-specific image types, memory layout, and checksum details are specified below for the Mambo controller application. Subcommands, image types, and status values not listed here are reserved.
 
 ### Upgrade Subcommands
 
-| Subcommand | Name                 | Direction     | Payload bytes, including subcommand |
-| ---------- | -------------------- | ------------- | ----------------------------------- |
-| `0x01`     | Firmware Header      | Host → Device | 16                                  |
-| `0x02`     | Ask For Bytes        | Device → Host | 13                                  |
-| `0x03`     | Firmware Data        | Host → Device | 3 + data length                     |
-| `0x04`     | Request Range Report | Host → Device | 1                                   |
-| `0x05`     | Range Report         | Device → Host | 26                                  |
-| `0x06`     | Download Finished    | Device → Host | 1                                   |
-| `0x07`     | Erase Progress       | Device → Host | 2                                   |
+| Subcommand | Name                  | Direction     | Payload bytes, including subcommand    |
+| ---------- | --------------------- | ------------- | -------------------------------------- |
+| `0x01`     | Firmware Header       | Host → Device | 16                                     |
+| `0x02`     | Ask For Bytes         | Device → Host | 13                                     |
+| `0x03`     | Firmware Data         | Host → Device | 3 + data length                        |
+| `0x04`     | Request Range Report  | Host → Device | 1                                      |
+| `0x05`     | Range Report          | Device → Host | 10 + bitmap length (26 for 128 chunks) |
+| `0x06`     | Download Finished     | Device → Host | 1                                      |
+| `0x07`     | Erase Progress        | Device → Host | 2                                      |
+| `0x08`     | File Exists           | Device → Host | 6                                      |
+| `0x09`     | Cancel                | Both          | 2                                      |
+| `0x13`     | Indexed Firmware Data | Host → Device | 3 + data length                        |
+| `0x14`     | Chunk Done            | Host → Device | 13                                     |
+| `0x20`     | Extensions Request    | Device → Host | 2 + number of extensions               |
+| `0x21`     | Extensions Response   | Host → Device | 2 + number of extensions               |
+
+Subcommands `0x01` to `0x07` form the base protocol, which every upgrade-capable device implements. Subcommands `0x08` to `0x21` are extensions: `0x13` and `0x14` are used only after both sides agree on them through [Extensions Request](#0x380x20-extensions-request) and [Extensions Response](#0x380x21-extensions-response), and `0x08` and `0x09` are optional.
 
 Destination identifies the upgrade target and Origin identifies the sender. Responses reverse these addresses. Mambo controller application upgrades use device address `0xEA` and host address `0x10`. These are extended-header addresses, independent of the serial sync byte.
 
@@ -1245,7 +1272,7 @@ Destination identifies the upgrade target and Origin identifies the sender. Resp
 
 ```cpp
     uint8_t     Subcommand;     // 0x01
-    uint8_t     Image_type;     // 0x00: Mambo controller application
+    uint8_t     Image_type;     // 0x00: Mambo controller application; stored as the first byte of the file, called Config in older firmware
     uint32_t    Hardware_ID;
     uint16_t    Firmware_ID;
     uint32_t    Image_size;     // bytes
@@ -1254,7 +1281,9 @@ Destination identifies the upgrade target and Origin identifies the sender. Resp
 
 `Hardware_ID` identifies the target hardware. The Mambo controller uses `0x00041001`. The header's `Firmware_ID` is 16 bits, unlike the 32-bit field in [Device Information](#0x29-parameter-device-information); FreedomTX 1.40 uses `0x0128`. The host must use the firmware ID associated with the image and target product.
 
-`Image_size` describes the exact image bytes transferred. `Image_checksum` is calculated over those bytes using the [Mambo image checksum](#mambo-image-checksum). The header contains no flash address; the device selects the destination according to its image type. The Mambo application image is a raw binary mapped to `0x0800C000`, below RF firmware at `0x080C0000`.
+The low byte of `Hardware_ID` is normally zero, but this is not guaranteed in practice, and devices must not rely on it. Older firmware does not use `Image_type` for anything.
+
+`Image_size` describes the exact image bytes transferred; it excludes the file header and trailing CRC-8 of the [firmware file](#firmware-file-structure). `Image_checksum` is calculated over those bytes using the [Mambo image checksum](#mambo-image-checksum) or the algorithm selected as described in [Checksum Algorithm Selection](#checksum-algorithm-selection). The header contains no flash address; the device selects the destination according to its image type. The Mambo application image is a raw binary mapped to `0x0800C000`, below RF firmware at `0x080C0000`.
 
 Sending this header initiates erasure. The host should identify the intended device and bootloader mode using [Device Information](#0x29-parameter-device-information) before sending it, and validate the image for that hardware and image type. The Mambo bootloader identifies itself as `TBS BOOTLOADER` with parameter protocol version 1. Its firmware field is zero in bootloader mode.
 
@@ -1269,7 +1298,9 @@ The host sends the header once per transfer. A timeout is not a reason to retran
     uint32_t    Image_checksum;
 ```
 
-For a data request, `Start` is an inclusive byte offset and `End` is an exclusive byte offset into the image. The device requests ranges; the host does not select them. For Mambo controller application upgrades, ranges are sequential, `Start` is a multiple of 48, and each range contains at most 128 chunks (6144 bytes). The host must validate `Start < End <= Image_size` before reading or sending image data.
+For a data request, `Start` is an inclusive byte offset and `End` is an exclusive byte offset into the image. The device requests ranges; the host does not select them. For Mambo controller application upgrades, ranges are sequential, `Start` is a multiple of 48, and each range contains at most 128 chunks (6144 bytes). The host must validate `Start < End <= Image_size` before reading or sending image data. Behavior for a `Start` that is not a multiple of 48 is undefined; hosts should treat it as an error and cancel the transfer.
+
+`Image_checksum` in a data request is the device's running checksum of the bytes received so far. Many devices do not compute it and send zero; hosts must ignore it for data requests.
 
 `Start = 0` and `End = 0` indicate terminal checksum verification, rather than a data request. The host must have transferred all image bytes and compare the returned `Image_checksum` against the header checksum before accepting completion. Intermediate checksum values must not be used to accept transfer completion.
 
@@ -1298,13 +1329,15 @@ The host sends this after the chunks for the current range, and again after retr
 
 ```cpp
     uint8_t     Subcommand;     // 0x05
-    uint8_t     Received[16];   // bitmap for up to 128 chunks
+    uint8_t     Received[];     // bitmap, 16 bytes for up to 128 chunks
     uint8_t     Status;         // 0x00: supported; other values reserved
     uint32_t    Start;
     uint32_t    End;
 ```
 
 For chunk `i`, bit `(i % 8)` of byte `Received[i / 8]` is one if the chunk was received, zero if it is missing. Bit numbering is least significant bit first within each byte. Only bits below `Chunk_count` are relevant.
+
+The bitmap length is `frames_in_chunk / 8` bytes, where `frames_in_chunk` is the maximum number of chunks per range, which is 128 on most devices (16 bytes) and 32 on some (4 bytes). Hosts must derive the bitmap length from the frame length rather than assume 16 bytes. The Mambo controller uses 128.
 
 The host matches `Start` and `End` to the current requested range, retransmits missing chunks, and requests another report. Delayed reports for already completed ranges may be ignored. A complete bitmap is range receipt confirmation; overall success still requires terminal checksum verification and Download Finished. An unsupported status must not be treated as success.
 
@@ -1317,7 +1350,7 @@ The host matches `Start` and `End` to the current requested range, retransmits m
 This is the final device completion indication. The host accepts it only after the terminal Ask For Bytes checksum matches and all image bytes have been transferred. Completion confirms the download. Application startup and reboot are separate from this transfer sequence.
 
 > [!NOTE]
-> The legacy Mambo bootloader emits `C8 05 38 10 EA 06 00`, whose outer CRC is invalid. A compatibility implementation may accept this exact legacy completion frame only from the expected device during the completion phase, after a valid terminal checksum response. This exception does not apply to any other upgrade frame. New implementations must generate a valid outer CRC.
+> The legacy Mambo bootloader and FreedomTX 1.27 emit `C8 05 38 10 EA 06 00`, whose outer CRC is invalid. A compatibility implementation may accept this exact legacy completion frame only from the expected device during the completion phase, after a valid terminal checksum response. This exception does not apply to any other upgrade frame. New implementations must generate a valid outer CRC.
 
 #### 0x38.0x07 Erase Progress
 
@@ -1327,6 +1360,75 @@ This is the final device completion indication. The host accepts it only after t
 ```
 
 The device may report erase progress after the Firmware Header and before requesting data. This is progress feedback, not a data request or completion acknowledgement.
+
+#### 0x38.0x08 File Exists
+
+```cpp
+    uint8_t     Subcommand;     // 0x08
+    uint8_t     Exists;         // 0x00: not present, 0x01: present
+    uint32_t    Hardware_ID;
+```
+
+A device that already holds the file announced by the Firmware Header sends this immediately after receiving the header. When `Exists` is `0x01`, the host skips sending firmware data for that file. `0x00` carries no information and need not be sent.
+
+#### 0x38.0x09 Cancel
+
+```cpp
+    uint8_t     Subcommand;     // 0x09
+    uint8_t     Ack;            // 0x00: cancel request, 0x01: cancel response
+```
+
+The host sends `Ack = 0x00` to stop an upgrade that was started, whether on user request or because of an error. The device acknowledges with `Ack = 0x01` and will most likely reset. A device may send a cancel request as well, for example when the header does not match its hardware, available space, or image size. A host must treat a cancel from the device as a failed transfer.
+
+#### 0x38.0x13 Indexed Firmware Data
+
+```cpp
+    uint8_t     Subcommand;     // 0x13
+    uint16_t    Chunk_index;    // absolute position of the 48-byte chunk in the image, zero-based
+    uint8_t[]   Data;           // 48 bytes; the last chunk of the image may be shorter
+```
+
+Replaces [Firmware Data](#0x380x03-firmware-data) when both sides negotiated extension `0x13`. Chunk `i` carries image bytes `i * 48` through `i * 48 + 47`, counted from the start of the image rather than the start of the requested range.
+
+#### 0x38.0x14 Chunk Done
+
+```cpp
+    uint8_t     Subcommand;     // 0x14
+    uint32_t    Start;
+    uint32_t    End;
+    uint32_t    DJB2_checksum;
+```
+
+Replaces [Request Range Report](#0x380x04-request-range-report) when both sides negotiated extension `0x14`. The host sends it after the last chunk of the range `Start` to `End` (as requested by Ask For Bytes), so that the device can verify and, if necessary, retry individual ranges. `DJB2_checksum` is calculated over the image bytes of that range with `sum = sum * 33 + byte` (modulo 2^32) and an initial value of `5381`. The device answers with either a [Range Report](#0x380x05-range-report) if chunks are missing, or the next [Ask For Bytes](#0x380x02-ask-for-bytes) if the range was received and verified.
+
+#### 0x38.0x20 Extensions Request
+
+```cpp
+    uint8_t     Subcommand;     // 0x20
+    uint8_t     Count;
+    uint8_t[]   Extensions;     // sorted subcommand values, such as 0x13 and 0x14
+```
+
+A device that supports extensions sends this immediately after receiving the Firmware Header. A host that does not know this subcommand ignores it. The device then falls back to the base protocol (`0x03` and `0x04`) after a timeout. `Count` must not exceed 48.
+
+#### 0x38.0x21 Extensions Response
+
+```cpp
+    uint8_t     Subcommand;     // 0x21
+    uint8_t     Count;
+    uint8_t[]   Extensions;     // sorted intersection of device and host extensions
+```
+
+The host answers an Extensions Request with the extensions that both sides support. The device must only use extensions listed in this response. A host that supports both `0x13` and `0x14` responds with both. If the host does not respond, or responds with none, the device uses the base protocol (`0x03` and `0x04`).
+
+### Entering Upgrade Mode
+
+Devices that run an application, rather than a bootloader, enter upgrade mode by one of two [General](#0x320x0a-general) direct commands (`0x32.0x0A`), both without payload:
+
+- `0x08` Reload with firmware update: reloads the device with firmware upgrade mode enabled.
+- `0x09` Reload to bootloader: reloads the device directly into the bootloader.
+
+Which command applies, if any, is device-specific. Current firmware that can be upgraded from the running application does not need either: it emulates bootloader mode, which can include a short USB disconnect and a reported firmware ID of zero. A host should decide from the [Device Information](#0x29-parameter-device-information) response, and should send the Firmware Header directly when the device already reports a firmware ID of zero.
 
 ### Upgrade Sequence
 
@@ -1355,7 +1457,24 @@ sequenceDiagram
     Device->>Host: Download Finished (0x38.0x06)
 ```
 
+Between the Firmware Header and the completion, the host sends a [Ping](#0x28-parameter-ping-devices) about once per second and, once the upgrade is done, continues pinging to detect that the device returned to its application. A device that receives a Firmware Header it cannot accept (hardware, size, or space mismatch) should answer with [Cancel](#0x380x09-cancel).
+
 Hosts should bound retries and waiting time. A failed or interrupted transfer can leave an incomplete application. Recovery and bootloader entry are device-specific. After a failed transfer, the host must re-establish bootloader communication before starting a new upgrade; it must not automatically resend the header to restart erasure.
+
+### Firmware File Structure
+
+Firmware files distributed for upgrades have a fixed envelope around the image. The envelope is not transferred; the host uses it to fill the [Firmware Header](#0x380x01-firmware-header) and to validate the file before it begins.
+
+| Offset            | Size         | Field                                              |
+| ----------------- | ------------ | -------------------------------------------------- |
+| 0                 | 1            | `Image_type` (Config)                              |
+| 1                 | 4            | `Hardware_ID`                                      |
+| 5                 | 2            | `Firmware_ID`                                      |
+| 7                 | 4            | `Image_size`                                       |
+| 11                | `Image_size` | Image                                              |
+| 11 + `Image_size` | 1            | CRC-8 (polynomial `0xD5`) over all preceding bytes |
+
+`Image_checksum` is not stored in the file; the host calculates it over the image bytes only, excluding the 11-byte envelope header and the trailing CRC-8.
 
 ### Mambo Image Checksum
 
@@ -1388,6 +1507,22 @@ def mambo_image_checksum(data):
 | ASCII `123456789`                     | `0xA47AA28F` |
 | 600 zero bytes                        | `0x77EDA223` |
 | Bytes `0x00` through `0xFF`, in order | `0x492ED94E` |
+
+### Checksum Algorithm Selection
+
+Two 32-bit checksum algorithms are in use for `Image_checksum`:
+
+- **Legacy**: the [Mambo image checksum](#mambo-image-checksum) above. It is a defective implementation of CRC-32 that cannot reliably detect single-bit errors, and it must not be used for new devices.
+- **Standard**: CRC-32 as used in Ethernet and ISO 3309 (check value `0xCBF43926` for ASCII `123456789`).
+
+The host selects the algorithm from the firmware ID that the bootloader reports in [Device Information](#0x29-parameter-device-information):
+
+| Bootloader firmware ID | Algorithm |
+| ---------------------- | --------- |
+| `0`                    | Legacy    |
+| `0.01` to `0.10`       | Standard  |
+
+Using the wrong algorithm makes the device reject the transfer at terminal checksum verification, after the flash has been erased.
 
 This image checksum is separate from the normal CRSF frame CRC-8 (`0xD5`), which remains required on each upgrade frame subject to the legacy completion exception above.
 
