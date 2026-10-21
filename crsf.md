@@ -48,6 +48,7 @@
   - [0x1F MAVLink FC](#0x1f-mavlink-fc)
   - [0x21 Flight Mode](#0x21-flight-mode)
   - [0x22 ESP_NOW Messages](#0x22-esp_now-messages)
+  - [0x23 GPS Home](#0x23-gps-home)
   - [0x27 Reserved](#0x27-reserved)
 - [Extended Frame Types](#extended-frame-types)
   - [0x28 Parameter Ping Devices](#0x28-parameter-ping-devices)
@@ -664,6 +665,18 @@ Reports the receiver's (air side) uplink reception statistics (e.g., RSSI, which
     char    VAL4[15];       // 15 characters for the lap time current/split
     char    FREE_TEXT[20];  // Free text of 20 character at the bottom of the screen
 ```
+
+## 0x23 GPS Home
+
+Home position as recorded by the flight controller, typically at arming. Lets the ground side (handset, ground station, antenna tracker) display distance and direction to home using the [0x02 GPS](#0x02-gps) position without having to infer the home point itself.
+
+```cpp
+    int32_t latitude;       // degree / 10`000`000
+    int32_t longitude;      // degree / 10`000`000
+    uint16_t altitude;      // meter - 1000m offset
+```
+
+Units and encoding of `latitude`, `longitude` and `altitude` are the same as in [0x02 GPS](#0x02-gps).
 
 ## 0x27 Reserved
 
