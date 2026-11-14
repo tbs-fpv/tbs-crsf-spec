@@ -1322,6 +1322,30 @@ Passthrough packets come in three different flavours:
       char text[50];  // ( Null-terminated string )
 ```
 
+- MAVlite frame, used in both directions by radio scripts to read and set flight controller parameters with ArduPilot's MAVlite messages (PARAM_REQUEST_READ, PARAM_SET, PARAM_VALUE, a COMMAND_LONG / COMMAND_ACK subset). One message per frame, no checksum (the CRSF CRC covers it).
+
+  Radio to flight controller, extended header so it is routed to the flight controller:
+
+```cpp
+      uint8_t destination = 0xC8;  // flight controller
+      uint8_t origin;              // e.g. 0xEA, the radio
+      uint8_t sub_type = 0xF4;
+      uint8_t len;                 // payload bytes, at most 31
+      uint8_t msgid;               // MAVLink message id
+      uint8_t payload[len];
+```
+
+  Flight controller to radio (the reply, broadcast like the other passthrough frames):
+
+```cpp
+      uint8_t sub_type = 0xF4;
+      uint8_t len;                 // payload bytes, at most 31
+      uint8_t msgid;
+      uint8_t payload[len];
+```
+
+  Sub types 0xF0 - 0xF2 are only sent by the flight controller; 0xF4 is the only sub type sent to it.
+
 ## 0x81, 0x82 mLRS Reserved
 
 The 0x81 and 0x82 broadcast frames establish the communication of mLRS TX modules with mLRS Configuration Lua scripts running on e.g. EdgeTx and OpenTx remote controllers. They encapsulate mLRS 'mBridge' protocol messages in CRSF frames. The protocol enables the setting of parameters and other functionality, but especially also communicates meta data which are needed for mLRS' parameter model, providing various information to the user, version control, and more features specific to the mLRS link system.
